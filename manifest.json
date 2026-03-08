@@ -1,29 +1,57 @@
 {
   "manifest_version": 3,
-  "name": "NovelAI 提示词自动补全",
-  "version": "1.0.0",
-  "description": "基于 Danbooru 标签库的 NovelAI 提示词智能补全助手",
+  "name": "NovelAI Prompt Autocomplete",
+  "version": "1.3.0",
+  "description": "NovelAI autocomplete with MD3 image reverse assistant",
   "permissions": [
-    "storage"
+    "storage",
+    "activeTab"
   ],
   "host_permissions": [
-    "https://novelai.net/*"
+    "https://novelai.net/*",
+    "<all_urls>"
   ],
   "content_scripts": [
     {
-      "matches": ["https://novelai.net/*"],
-      "js": ["content.js"],
-      "css": ["styles.css"],
+      "matches": [
+        "https://novelai.net/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "image-assistant.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
       "run_at": "document_idle"
     }
   ],
   "background": {
     "service_worker": "background.js"
   },
+  "action": {
+    "default_title": "\u56fe\u50cf\u53cd\u63a8\u52a9\u624b",
+    "default_popup": "popup.html"
+  },
   "web_accessible_resources": [
     {
-      "resources": ["data/danbooru_tags.json"],
-      "matches": ["https://novelai.net/*"]
+      "resources": [
+        "data/danbooru_tags.json"
+      ],
+      "matches": [
+        "https://novelai.net/*"
+      ]
     }
   ],
   "icons": {
