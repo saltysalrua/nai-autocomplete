@@ -390,6 +390,111 @@
     ui.preview.src = state.selectedImage.dataUrl;
     ui.previewHint.textContent = state.selectedImage.sourceUrl;
   }
+
+  function getBackgroundImageUrl(element) {
+    if (!(element instanceof HTMLElement)) return '';
+
+    const backgroundImage = window.getComputedStyle(element).backgroundImage || '';
+    const match = backgroundImage.match(/url\((['"]?)(.*?)\1\)/i);
+    if (!match?.[2]) return '';
+
+    try {
+      return new URL(match[2], window.location.href).href;
+    } catch (error) {
+      return match[2];
+    }
+  }
+
+  function isImageCandidate(element) {
+    return (
+      element instanceof HTMLImageElement ||
+      element instanceof HTMLCanvasElement ||
+      (element instanceof HTMLElement && Boolean(getBackgroundImageUrl(element)))
+    );
+  }
+
+  function findImageCandidate(event) {
+    const candidates = [];
+
+    const pushCandidate = (element) => {
+      if (!(element instanceof Element)) return;
+      if (ui.root?.contains(element)) return;
+      if (!candidates.includes(element)) candidates.push(element);
+    };
+
+    if (state.hoveredImage) {
+      pushCandidate(state.hoveredImage);
+    }
+
+    if (event.target instanceof Element) {
+      pushCandidate(event.target);
+      pushCandidate(event.target.closest('img, canvas'));
+    }
+
+    if (typeof event.composedPath === 'function') {
+      event.composedPath().forEach((node) => {
+        if (!(node instanceof Element)) return;
+        pushCandidate(node);
+        pushCandidate(node.closest('img, canvas'));
+      });
+    }
+
+    if (typeof event.clientX === 'number' && typeof event.clientY === 'number') {
+      document.elementsFromPoint(event.clientX, event.clientY).forEach((element) => {
+        pushCandidate(element);
+        pushCandidate(element.closest('img, canvas'));
+      });
+    }
+
+    return candidates.find(isImageCandidate) || null;
+  }
+
+  function tryElementToDataUrl(element) {
+    try {
+      if (element instanceof HTMLCanvasElement) {
+        return element.toDataURL('image/png');
+      }
+
+      if (element instanceof HTMLImageElement && element.complete && element.naturalWidth > 0 && element.naturalHeight > 0) {
+        const canvas = document.createElement('canvas');
+        canvas.width = element.naturalWidth;
+        canvas.height = element.naturalHeight;
+        const context = canvas.getContext('2d');
+        if (!context) return '';
+        context.drawImage(element, 0, 0);
+        return canvas.toDataURL('image/png');
+      }
+    } catch (error) {
+      return '';
+    }
+
+    return '';
+  }
+
+  function resolveImageSource(element) {
+    if (element instanceof HTMLImageElement) {
+      const sourceUrl = element.currentSrc || element.src || '';
+      const dataUrl = sourceUrl.startsWith('data:') ? sourceUrl : tryElementToDataUrl(element);
+      return { sourceUrl, dataUrl };
+    }
+
+    if (element instanceof HTMLCanvasElement) {
+      return {
+        sourceUrl: window.location.href,
+        dataUrl: tryElementToDataUrl(element),
+      };
+    }
+
+    if (element instanceof HTMLElement) {
+      return {
+        sourceUrl: getBackgroundImageUrl(element),
+        dataUrl: '',
+      };
+    }
+
+    return { sourceUrl: '', dataUrl: '' };
+  }
+
   function setPage(page) {
     state.activePage = page;
     ui.navButtons.forEach((btn) => {
@@ -596,8 +701,46 @@
     }
   }
 
+
+  function getVisibleCaptureRect(element) {
+    if (!(element instanceof Element)) return null;
+    const rect = element.getBoundingClientRect();
+    const left = Math.max(0, rect.left);
+    const top = Math.max(0, rect.top);
+    const right = Math.min(window.innerWidth, rect.right);
+    const bottom = Math.min(window.innerHeight, rect.bottom);
+    const width = right - left;
+    const height = bottom - top;
+
+    if (width < 2 || height < 2) return null;
+
+    return {
+      left,
+      top,
+      width,
+      height,
+      devicePixelRatio: window.devicePixelRatio || 1,
+    };
+  }
+
+  async function captureVisibleElement(element) {
+    const rect = getVisibleCaptureRect(element);
+    if (!rect) return '';
+
+    try {
+      const response = await sendRuntimeMessage({
+        type: 'nai-capture-visible-area',
+        rect,
+      });
+      return response?.ok ? response.dataUrl || '' : '';
+    } catch (error) {
+      return '';
+    }
+  }
+
   async function useImageElement(image, autoReverse) {
-    const sourceUrl = image.currentSrc || image.src;
+    const resolved = resolveImageSource(image);
+    const sourceUrl = resolved.sourceUrl;
     if (!sourceUrl) {
       setStatus('\u76ee\u6807\u5143\u7d20\u6ca1\u6709\u53ef\u7528\u56fe\u7247\u5730\u5740\u3002', true);
       return;
@@ -606,13 +749,39 @@
     setStatus('\u6b63\u5728\u8bfb\u53d6\u56fe\u7247...', false);
 
     try {
+      if (resolved.dataUrl) {
+        state.selectedImage = { sourceUrl, dataUrl: resolved.dataUrl };
+        updatePreview();
+        openPanel('reverse');
+        setStatus(T.statusImageLocked, false);
+
+        if (autoReverse) {
+          await reverseAndCopy();
+        }
+        return;
+      }
+
       const response = await sendRuntimeMessage({
         type: 'nai-fetch-image-dataurl',
         url: sourceUrl,
+        referrer: window.location.href,
       });
 
       if (!response?.ok) {
-        throw new Error(response?.error || '\u56fe\u7247\u8bfb\u53d6\u5931\u8d25');
+        const capturedDataUrl = await captureVisibleElement(image);
+        if (!capturedDataUrl) {
+          throw new Error(response?.error || '\u56fe\u7247\u8bfb\u53d6\u5931\u8d25');
+        }
+
+        state.selectedImage = { sourceUrl, dataUrl: capturedDataUrl };
+        updatePreview();
+        openPanel('reverse');
+        setStatus(T.statusImageLocked, false);
+
+        if (autoReverse) {
+          await reverseAndCopy();
+        }
+        return;
       }
 
       state.selectedImage = { sourceUrl, dataUrl: response.dataUrl };
@@ -656,7 +825,7 @@
   }
   function onPickHover(event) {
     if (!state.isPickingImage) return;
-    const image = event.target instanceof HTMLElement ? event.target.closest('img') : null;
+    const image = findImageCandidate(event);
     if (!image) return;
 
     if (state.hoveredImage && state.hoveredImage !== image) {
@@ -668,10 +837,10 @@
   }
 
   function onPickOut(event) {
-    if (!state.isPickingImage) return;
-    const image = event.target instanceof HTMLElement ? event.target.closest('img') : null;
-    if (!image || image !== state.hoveredImage) return;
-    image.classList.remove('nai-image-pick-hover');
+    if (!state.isPickingImage || !state.hoveredImage) return;
+    const relatedTarget = event.relatedTarget instanceof Node ? event.relatedTarget : null;
+    if (relatedTarget && state.hoveredImage.contains(relatedTarget)) return;
+    state.hoveredImage.classList.remove('nai-image-pick-hover');
     state.hoveredImage = null;
   }
 
@@ -684,7 +853,7 @@
 
   function onPickClick(event) {
     if (!state.isPickingImage) return;
-    const image = event.target instanceof HTMLElement ? event.target.closest('img') : null;
+    const image = findImageCandidate(event);
     event.preventDefault();
     event.stopPropagation();
 
@@ -701,7 +870,7 @@
     if (state.pending || state.isPickingImage) return;
     if (event.button !== 0 || !event.altKey || !event.shiftKey) return;
 
-    const image = event.target instanceof HTMLElement ? event.target.closest('img') : null;
+    const image = findImageCandidate(event);
     if (!image) return;
 
     event.preventDefault();
