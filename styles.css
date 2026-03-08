@@ -1,0 +1,358 @@
+/* MD3 Design System - NovelAI Autocomplete */
+
+/* CSS Custom Properties - MD3 Color Tokens */
+:root {
+  --md-sys-color-surface: #1c1b1f;
+  --md-sys-color-surface-container: #211f26;
+  --md-sys-color-surface-container-high: #2b2930;
+  --md-sys-color-on-surface: #e6e1e5;
+  --md-sys-color-on-surface-variant: #cac4d0;
+  --md-sys-color-outline: #938f99;
+  --md-sys-color-outline-variant: #49454f;
+  --md-sys-color-primary: #d0bcff;
+  --md-sys-color-on-primary: #381e72;
+  --md-sys-color-secondary: #ccc2dc;
+  --md-sys-color-tertiary: #efb8c8;
+  --md-sys-color-error: #f2b8b5;
+
+  /* Category Colors */
+  --nai-category-general: #93c5fd;
+  --nai-category-artist: #fca5a5;
+  --nai-category-copyright: #c4b5fd;
+  --nai-category-character: #86efac;
+  --nai-category-meta: #fcd34d;
+
+  /* Elevation */
+  --md-sys-elevation-2: 0 1px 2px rgba(0,0,0,0.3), 0 2px 6px 2px rgba(0,0,0,0.15);
+  --md-sys-elevation-3: 0 4px 8px 3px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* Autocomplete Container */
+.nai-autocomplete-container {
+  position: absolute;
+  z-index: 999999;
+  min-width: 280px;
+  max-width: 400px;
+  max-height: 320px;
+  background: var(--md-sys-color-surface-container);
+  border-radius: 12px;
+  box-shadow: var(--md-sys-elevation-3);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  overflow: hidden;
+  font-family: 'Roboto', 'Segoe UI', -apple-system, sans-serif;
+  opacity: 0;
+  transform: translateY(-8px) scale(0.95);
+  transition: opacity 0.15s ease-out, transform 0.15s ease-out;
+  pointer-events: none;
+}
+
+.nai-autocomplete-container.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* Header */
+.nai-autocomplete-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--md-sys-color-surface-container-high);
+  border-bottom: 1px solid var(--md-sys-color-outline-variant);
+}
+
+.nai-autocomplete-title {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface-variant);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Slash Toggle */
+.nai-slash-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background: var(--md-sys-color-surface);
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--md-sys-color-on-surface-variant);
+  cursor: pointer;
+}
+
+.nai-slash-toggle:hover {
+  background: rgba(208, 188, 255, 0.1);
+}
+
+.nai-slash-toggle input {
+  width: 12px;
+  height: 12px;
+  accent-color: var(--md-sys-color-primary);
+  cursor: pointer;
+}
+
+.nai-autocomplete-hint {
+  font-size: 10px;
+  color: var(--md-sys-color-outline);
+}
+
+.nai-autocomplete-hint kbd {
+  display: inline-block;
+  padding: 1px 4px;
+  margin: 0 2px;
+  background: var(--md-sys-color-surface);
+  border-radius: 4px;
+  font-size: 9px;
+  font-family: inherit;
+}
+
+/* Results List */
+.nai-autocomplete-list {
+  max-height: 260px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0;
+}
+
+.nai-autocomplete-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.nai-autocomplete-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.nai-autocomplete-list::-webkit-scrollbar-thumb {
+  background: var(--md-sys-color-outline-variant);
+  border-radius: 3px;
+}
+
+.nai-autocomplete-list::-webkit-scrollbar-thumb:hover {
+  background: var(--md-sys-color-outline);
+}
+
+/* Item */
+.nai-autocomplete-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.1s ease;
+}
+
+.nai-autocomplete-item:hover,
+.nai-autocomplete-item.selected {
+  background: rgba(208, 188, 255, 0.08);
+}
+
+.nai-autocomplete-item.selected {
+  background: rgba(208, 188, 255, 0.12);
+}
+
+/* Category Indicator */
+.nai-autocomplete-category {
+  width: 3px;
+  height: 24px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.nai-autocomplete-category[data-category="0"] {
+  background: var(--nai-category-general);
+}
+.nai-autocomplete-category[data-category="1"] {
+  background: var(--nai-category-artist);
+}
+.nai-autocomplete-category[data-category="3"] {
+  background: var(--nai-category-copyright);
+}
+.nai-autocomplete-category[data-category="4"] {
+  background: var(--nai-category-character);
+}
+.nai-autocomplete-category[data-category="5"] {
+  background: var(--nai-category-meta);
+}
+
+/* Content */
+.nai-autocomplete-content {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.nai-autocomplete-tag {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--md-sys-color-on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nai-autocomplete-tag .highlight {
+  color: var(--md-sys-color-primary);
+  font-weight: 600;
+}
+
+.nai-autocomplete-translation {
+  font-size: 11px;
+  color: var(--md-sys-color-on-surface-variant);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+/* Post Count Badge */
+.nai-autocomplete-count {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--md-sys-color-outline);
+  background: var(--md-sys-color-surface);
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* Weight Controls */
+.nai-autocomplete-weight {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.nai-weight-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 4px;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s;
+}
+
+.nai-weight-btn:hover {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+
+.nai-weight-value {
+  min-width: 28px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--md-sys-color-primary);
+}
+
+/* Artist Toggle */
+.nai-artist-toggle {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  background: var(--md-sys-color-surface);
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--nai-category-artist);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.nai-artist-toggle:hover {
+  background: rgba(252, 165, 165, 0.2);
+}
+
+.nai-artist-check {
+  width: 12px;
+  height: 12px;
+  accent-color: var(--nai-category-artist);
+  cursor: pointer;
+}
+
+/* Empty State */
+.nai-autocomplete-empty {
+  padding: 24px 16px;
+  text-align: center;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 13px;
+}
+
+.nai-autocomplete-empty-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+  opacity: 0.5;
+}
+
+/* Loading State */
+.nai-autocomplete-loading {
+  padding: 16px;
+  text-align: center;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: 12px;
+}
+
+.nai-autocomplete-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--md-sys-color-outline-variant);
+  border-top-color: var(--md-sys-color-primary);
+  border-radius: 50%;
+  animation: nai-spin 0.8s linear infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes nai-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Footer */
+.nai-autocomplete-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--md-sys-color-surface-container-high);
+  border-top: 1px solid var(--md-sys-color-outline-variant);
+  font-size: 10px;
+  color: var(--md-sys-color-outline);
+}
+
+.nai-autocomplete-count-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Toast Notification */
+.nai-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface);
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: var(--md-sys-elevation-3);
+  font-size: 13px;
+  z-index: 999999;
+  opacity: 0;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.nai-toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}

@@ -1,0 +1,34 @@
+{
+  "manifest_version": 3,
+  "name": "NovelAI 提示词自动补全",
+  "version": "1.0.0",
+  "description": "基于 Danbooru 标签库的 NovelAI 提示词智能补全助手",
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://novelai.net/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://novelai.net/*"],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["data/danbooru_tags.json"],
+      "matches": ["https://novelai.net/*"]
+    }
+  ],
+  "icons": {
+    "16": "icons/16.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  }
+}
