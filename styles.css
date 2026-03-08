@@ -969,10 +969,40 @@ html.nai-image-pick-mode * {
   resize: vertical;
 }
 
+
+.nai-md3-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.nai-md3-input-row .nai-md3-input {
+  flex: 1;
+}
+
+.nai-md3-inline-action {
+  flex: 0 0 auto;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
 .nai-md3-grid-2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.nai-md3-settings-section {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--md-sys-color-surface) 72%, transparent);
 }
 
 .nai-md3-switch {

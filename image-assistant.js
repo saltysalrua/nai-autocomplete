@@ -29,6 +29,8 @@
     noHistory: '\u6682\u65e0\u5386\u53f2\u8bb0\u5f55',
     copy: '\u590d\u5236',
     load: '\u52a0\u8f7d',
+    serviceProvider: '\u670d\u52a1\u5546\u9884\u8bbe',
+    protocol: '\u63a5\u53e3\u534f\u8bae',
     model: '\u6a21\u578b',
     systemPrompt: '\u7cfb\u7edf\u63d0\u793a\u8bcd',
     reversePrompt: '\u53cd\u63a8\u6307\u4ee4\uff08\u53cd\u63a8\u9875\u4e0d\u518d\u5355\u72ec\u8f93\u5165\uff09',
@@ -38,6 +40,14 @@
     rolePrompt: '\u76ee\u6807\u89d2\u8272\u63d0\u793a\u8bcd',
     defaultCodeFence: '\u9ed8\u8ba4\u4ee3\u7801\u6846\u8f93\u51fa',
     wrapCodeButton: '\u5305\u88f9\u4ee3\u7801\u6846',
+    fetchModels: '\u83b7\u53d6\u6a21\u578b',
+    testConnection: '\u6d4b\u8bd5\u8fde\u63a5',
+    fallbackMode: '\u542f\u7528\u5907\u7528\u6a21\u578b\uff08\u4e3b\u6a21\u578b\u5931\u8d25\u65f6\u81ea\u52a8\u91cd\u8bd5\uff09',
+    fallbackProvider: '\u5907\u7528\u670d\u52a1\u5546\u9884\u8bbe',
+    fallbackProtocol: '\u5907\u7528\u63a5\u53e3\u534f\u8bae',
+    fallbackEndpoint: '\u5907\u7528 API Endpoint',
+    fallbackModel: '\u5907\u7528\u6a21\u578b',
+    fallbackApiKey: '\u5907\u7528 API Key\uff08\u7559\u7a7a\u5219\u590d\u7528\u4e3b Key\uff09',
     showBall: '\u663e\u793a\u60ac\u6d6e\u7403\uff08\u5173\u95ed\u540e\u4ec5\u53ef\u901a\u8fc7\u5feb\u6377\u952e\u6216\u6269\u5c55\u5f39\u7a97\u6253\u5f00\uff09',
     saveSettings: '\u4fdd\u5b58\u8bbe\u7f6e',
     statusReady: '\u5c31\u7eea\u3002\u53ef\u4f7f\u7528 Alt + Shift + \u70b9\u51fb\u56fe\u7247 \u5feb\u901f\u53cd\u63a8\u3002',
@@ -46,8 +56,11 @@
     statusNeedPrompt: '\u8bf7\u5148\u5728\u8bbe\u7f6e\u9875\u586b\u5199\u53cd\u63a8\u6307\u4ee4\u3002',
     statusNeedRolePrompt: '\u5df2\u5f00\u542f\u66ff\u6362\u89d2\u8272\u6a21\u5f0f\uff0c\u8bf7\u5728\u8bbe\u7f6e\u9875\u586b\u5199\u76ee\u6807\u89d2\u8272\u63d0\u793a\u8bcd\u3002',
     statusRunning: '\u6b63\u5728\u8bf7\u6c42\u6a21\u578b\u53cd\u63a8...',
+    statusRunningFallback: '\u4e3b\u6a21\u578b\u8bf7\u6c42\u5931\u8d25\uff0c\u6b63\u5728\u5207\u6362\u5230\u5907\u7528\u6a21\u578b...',
     statusDoneCopied: '\u53cd\u63a8\u5b8c\u6210\uff0c\u5df2\u590d\u5236\u5230\u526a\u5207\u677f\u3002',
     statusDoneNotCopied: '\u53cd\u63a8\u5b8c\u6210\uff0c\u4f46\u81ea\u52a8\u590d\u5236\u5931\u8d25\u3002',
+    statusDoneCopiedFallback: '\u4e3b\u6a21\u578b\u5931\u8d25\uff0c\u5df2\u81ea\u52a8\u5207\u6362\u5230\u5907\u7528\u6a21\u578b\u5e76\u590d\u5236\u5230\u526a\u5207\u677f\u3002',
+    statusDoneNotCopiedFallback: '\u4e3b\u6a21\u578b\u5931\u8d25\uff0c\u5df2\u81ea\u52a8\u5207\u6362\u5230\u5907\u7528\u6a21\u578b\uff0c\u4f46\u81ea\u52a8\u590d\u5236\u5931\u8d25\u3002',
     statusSelectMode: '\u9009\u56fe\u6a21\u5f0f\uff1a\u70b9\u51fb\u4e00\u5f20\u56fe\u7247\uff0c\u6309 Esc \u53d6\u6d88\u3002',
     statusSelectCanceled: '\u5df2\u53d6\u6d88\u9009\u56fe\u6a21\u5f0f\u3002',
     statusImageLocked: '\u56fe\u7247\u5df2\u9501\u5b9a\u3002',
@@ -58,9 +71,14 @@
     statusLoadedHistory: '\u5df2\u52a0\u8f7d\u5386\u53f2\u7ed3\u679c\u3002',
     statusWrapped: '\u5df2\u5c06\u7ed3\u679c\u5305\u88f9\u4e3a\u4ee3\u7801\u6846\u3002',
     statusNoResult: '\u6682\u65e0\u53ef\u5305\u88f9\u7684\u7ed3\u679c\u3002',
+    statusTestingConnection: '\u6b63\u5728\u6d4b\u8bd5\u8fde\u63a5...',
+    statusNeedFallbackConfig: '\u5df2\u542f\u7528\u5907\u7528\u6a21\u578b\uff0c\u8bf7\u5148\u5b8c\u6574\u914d\u7f6e\u5907\u7528\u670d\u52a1\u5546\u3001Endpoint\u3001Model \u548c API Key\u3002',
+    statusContextInvalidated: '\u6269\u5c55\u5df2\u66f4\u65b0\uff0c\u8bf7\u5237\u65b0\u5f53\u524d\u9875\u9762\u540e\u91cd\u8bd5\u3002',
   };
 
   const DEFAULT_SETTINGS = {
+    providerPreset: 'openai',
+    protocol: 'openai-chat',
     endpoint: 'https://api.openai.com/v1/chat/completions',
     model: 'gpt-4.1-mini',
     apiKey: '',
@@ -73,10 +91,33 @@
     defaultCodeFence: false,
     temperature: 0.4,
     maxTokens: 700,
+    enableFallbackModel: false,
+    fallbackProviderPreset: 'xai-responses',
+    fallbackProtocol: 'responses',
+    fallbackEndpoint: 'https://api.x.ai/v1/responses',
+    fallbackModel: 'grok-4-fast-reasoning',
+    fallbackApiKey: '',
     showFloatingBall: true,
   };
 
 
+
+  const PROTOCOL_OPTIONS = [
+    { id: 'openai-chat', label: 'OpenAI Chat Completions' },
+    { id: 'responses', label: 'Responses API' },
+    { id: 'anthropic-messages', label: 'Anthropic Messages API' },
+  ];
+
+  const PROVIDER_PRESETS = [
+    { id: 'openai', label: 'OpenAI', protocol: 'openai-chat', endpoint: 'https://api.openai.com/v1/chat/completions', defaultModel: 'gpt-4.1-mini' },
+    { id: 'openrouter', label: 'OpenRouter', protocol: 'openai-chat', endpoint: 'https://openrouter.ai/api/v1/chat/completions', defaultModel: 'openai/gpt-4.1-mini' },
+    { id: 'xai-chat', label: 'xAI (Chat Completions)', protocol: 'openai-chat', endpoint: 'https://api.x.ai/v1/chat/completions', defaultModel: 'grok-4' },
+    { id: 'xai-responses', label: 'xAI (Responses API)', protocol: 'responses', endpoint: 'https://api.x.ai/v1/responses', defaultModel: 'grok-4-fast-reasoning' },
+    { id: 'gemini-openai', label: 'Google Gemini (OpenAI\u517c\u5bb9)', protocol: 'openai-chat', endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions', defaultModel: 'gemini-2.5-flash' },
+    { id: 'deepseek', label: 'DeepSeek', protocol: 'openai-chat', endpoint: 'https://api.deepseek.com/chat/completions', defaultModel: 'deepseek-chat' },
+    { id: 'anthropic', label: 'Anthropic', protocol: 'anthropic-messages', endpoint: 'https://api.anthropic.com/v1/messages', defaultModel: 'claude-sonnet-4-20250514' },
+    { id: 'custom', label: '\u81ea\u5b9a\u4e49', protocol: 'openai-chat', endpoint: '', defaultModel: '' },
+  ];
   const LEGACY_DEFAULT_PROMPTS = {
     systemPrompt: [
       '\u4f60\u662f\u56fe\u50cf\u53cd\u63a8\u52a9\u624b\u3002\u8bf7\u5206\u6790\u56fe\u7247\u5e76\u7ed9\u51fa\u9ad8\u8d28\u91cf\u6807\u7b7e\uff0c\u4ee5\u53ca\u4e00\u6761\u53ef\u76f4\u63a5\u7528\u4e8e\u751f\u6210\u7684\u7cbe\u7b80\u63d0\u793a\u8bcd\u3002',
@@ -105,6 +146,7 @@
     pending: false,
     hoveredImage: null,
     activePage: 'reverse',
+    extensionContextInvalidated: false,
     panelDrag: {
       active: false,
       startX: 0,
@@ -167,31 +209,112 @@
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
+      .replace(/\"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  function isContextInvalidatedError(error) {
+    const message = error instanceof Error ? error.message : String(error || '');
+    return message.includes('Extension context invalidated');
+  }
+
+  function markContextInvalidated(error) {
+    if (!isContextInvalidatedError(error)) return false;
+    state.extensionContextInvalidated = true;
+    stopPickMode();
+    setPending(false);
+    setStatus(T.statusContextInvalidated, true);
+    return true;
+  }
+
+  function ensureExtensionContext() {
+    if (state.extensionContextInvalidated) {
+      setStatus(T.statusContextInvalidated, true);
+      return false;
+    }
+    return true;
   }
 
   function storageGet(keys) {
     return new Promise((resolve) => {
-      chrome.storage.local.get(keys, (result) => resolve(result || {}));
+      if (!ensureExtensionContext()) {
+        resolve({});
+        return;
+      }
+
+      try {
+        chrome.storage.local.get(keys, (result) => {
+          if (chrome.runtime.lastError && markContextInvalidated(chrome.runtime.lastError)) {
+            resolve({});
+            return;
+          }
+          resolve(result || {});
+        });
+      } catch (error) {
+        if (markContextInvalidated(error)) {
+          resolve({});
+          return;
+        }
+        throw error;
+      }
     });
   }
 
   function storageSet(data) {
-    return new Promise((resolve) => {
-      chrome.storage.local.set(data, () => resolve());
+    return new Promise((resolve, reject) => {
+      if (!ensureExtensionContext()) {
+        resolve(false);
+        return;
+      }
+
+      try {
+        chrome.storage.local.set(data, () => {
+          if (chrome.runtime.lastError) {
+            if (markContextInvalidated(chrome.runtime.lastError)) {
+              resolve(false);
+              return;
+            }
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          resolve(true);
+        });
+      } catch (error) {
+        if (markContextInvalidated(error)) {
+          resolve(false);
+          return;
+        }
+        reject(error);
+      }
     });
   }
 
   function sendRuntimeMessage(message) {
     return new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(message, (response) => {
-        if (chrome.runtime.lastError) {
-          reject(new Error(chrome.runtime.lastError.message));
+      if (!ensureExtensionContext()) {
+        reject(new Error(T.statusContextInvalidated));
+        return;
+      }
+
+      try {
+        chrome.runtime.sendMessage(message, (response) => {
+          if (chrome.runtime.lastError) {
+            if (markContextInvalidated(chrome.runtime.lastError)) {
+              reject(new Error(T.statusContextInvalidated));
+              return;
+            }
+            reject(new Error(chrome.runtime.lastError.message));
+            return;
+          }
+          resolve(response);
+        });
+      } catch (error) {
+        if (markContextInvalidated(error)) {
+          reject(new Error(T.statusContextInvalidated));
           return;
         }
-        resolve(response);
-      });
+        reject(error);
+      }
     });
   }
 
@@ -229,11 +352,11 @@
     }
   }
 
-  function setPending(isPending) {
+  function setPending(isPending, label) {
     state.pending = isPending;
     if (!ui.sendButton) return;
     ui.sendButton.disabled = isPending;
-    ui.sendButton.textContent = isPending ? '\u53cd\u63a8\u4e2d...' : T.reverseCopy;
+    ui.sendButton.textContent = isPending ? (label || '\u53cd\u63a8\u4e2d...') : T.reverseCopy;
   }
 
   function setResult(text) {
@@ -535,6 +658,210 @@
     return messages;
   }
 
+  function getProviderPresetById(id) {
+    return PROVIDER_PRESETS.find((item) => item.id === id) || PROVIDER_PRESETS[0];
+  }
+
+  function fillSelectOptions(select, options) {
+    if (!select) return;
+    select.innerHTML = options
+      .map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)}</option>`)
+      .join('');
+  }
+
+  function updateFallbackSettingsVisibility() {
+    if (!ui.settings.fallbackSection) return;
+    ui.settings.fallbackSection.classList.toggle('nai-hidden', !ui.settings.enableFallbackModel.checked);
+  }
+
+  function syncProviderFields(kind, forceModel) {
+    const isFallback = kind === 'fallback';
+    const presetField = isFallback ? ui.settings.fallbackProviderPreset : ui.settings.providerPreset;
+    const protocolField = isFallback ? ui.settings.fallbackProtocol : ui.settings.protocol;
+    const endpointField = isFallback ? ui.settings.fallbackEndpoint : ui.settings.endpoint;
+    const modelField = isFallback ? ui.settings.fallbackModel : ui.settings.model;
+    const preset = getProviderPresetById(presetField.value);
+
+    if (preset.protocol) {
+      protocolField.value = preset.protocol;
+    }
+
+    if (preset.endpoint || preset.id === 'custom') {
+      endpointField.value = preset.endpoint;
+    }
+
+    if (forceModel || !modelField.value.trim() || preset.id !== 'custom') {
+      modelField.value = preset.defaultModel || modelField.value;
+    }
+  }
+
+  function buildRequestConfig(target, messages) {
+    const preset = getProviderPresetById(target.providerPreset);
+    return {
+      providerId: target.providerPreset,
+      label: preset?.label || '\u81ea\u5b9a\u4e49',
+      protocol: target.protocol,
+      endpoint: target.endpoint.trim(),
+      apiKey: target.apiKey.trim(),
+      model: target.model.trim(),
+      temperature: Number(state.settings.temperature) || DEFAULT_SETTINGS.temperature,
+      maxTokens: Number(state.settings.maxTokens) || DEFAULT_SETTINGS.maxTokens,
+      messages,
+    };
+  }
+
+  function hasCompleteModelConfig(config) {
+    return Boolean(config?.endpoint && config?.model && config?.apiKey);
+  }
+
+  function buildPrimaryConfig(messages) {
+    return buildRequestConfig({
+      providerPreset: state.settings.providerPreset,
+      protocol: state.settings.protocol,
+      endpoint: state.settings.endpoint,
+      apiKey: state.settings.apiKey,
+      model: state.settings.model,
+    }, messages);
+  }
+
+  function buildFallbackConfig(messages, primaryApiKey) {
+    if (!state.settings.enableFallbackModel) return null;
+    const fallbackKey = (state.settings.fallbackApiKey || '').trim() || primaryApiKey || '';
+    return buildRequestConfig({
+      providerPreset: state.settings.fallbackProviderPreset,
+      protocol: state.settings.fallbackProtocol,
+      endpoint: state.settings.fallbackEndpoint,
+      apiKey: fallbackKey,
+      model: state.settings.fallbackModel,
+    }, messages);
+  }
+
+  function buildTestMessages() {
+    return [
+      { role: 'system', content: 'You are a connection test assistant. Reply with OK only.' },
+      { role: 'user', content: [{ type: 'text', text: 'Reply with OK only.' }] },
+    ];
+  }
+
+  async function runConnectionCheck(config) {
+    const response = await sendRuntimeMessage({
+      type: 'nai-llm-chat',
+      payload: { primary: config },
+    });
+
+    if (!response?.ok) {
+      throw new Error(response?.error || '\u8fde\u63a5\u6d4b\u8bd5\u5931\u8d25');
+    }
+
+    return response;
+  }
+
+  async function testConnection() {
+    if (state.pending) return;
+
+    const testMessages = buildTestMessages();
+    const primaryConfig = buildPrimaryConfig(testMessages);
+    if (!hasCompleteModelConfig(primaryConfig)) {
+      setStatus('\u8bf7\u5148\u5b8c\u6574\u914d\u7f6e\u4e3b\u6a21\u578b\u7684\u670d\u52a1\u5546\u3001Endpoint\u3001Model \u548c API Key\u3002', true);
+      openPanel('settings');
+      return;
+    }
+
+    const fallbackConfig = buildFallbackConfig(testMessages, primaryConfig.apiKey);
+    if (state.settings.enableFallbackModel && !hasCompleteModelConfig(fallbackConfig)) {
+      setStatus(T.statusNeedFallbackConfig, true);
+      openPanel('settings');
+      return;
+    }
+
+    const checks = [{ name: '\u4e3b\u6a21\u578b', config: primaryConfig }];
+    if (state.settings.enableFallbackModel && fallbackConfig) {
+      checks.push({ name: '\u5907\u7528\u6a21\u578b', config: fallbackConfig });
+    }
+
+    setPending(true, '\u6d4b\u8bd5\u4e2d...');
+    setStatus(T.statusTestingConnection, false);
+
+    const passed = [];
+    const failed = [];
+
+    try {
+      for (const check of checks) {
+        try {
+          await runConnectionCheck(check.config);
+          passed.push(`${check.name}\uFF08${check.config.model}\uFF09`);
+        } catch (error) {
+          const message = error instanceof Error ? error.message : String(error);
+          failed.push(`${check.name}\uFF08${check.config.model}\uFF09\uFF1A${message}`);
+        }
+      }
+
+      if (failed.length) {
+        throw new Error(failed.join('\uFF1B'));
+
+      }
+
+      setStatus(`\u8fde\u63a5\u6d4b\u8bd5\u901a\u8fc7\uff1a${passed.join('\u3001')}\u3002`, false);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : String(error), true);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  function getModelListConfig(kind) {
+    const isFallback = kind === 'fallback';
+    return {
+      providerId: isFallback ? ui.settings.fallbackProviderPreset.value : ui.settings.providerPreset.value,
+      protocol: isFallback ? ui.settings.fallbackProtocol.value : ui.settings.protocol.value,
+      endpoint: (isFallback ? ui.settings.fallbackEndpoint.value : ui.settings.endpoint.value).trim(),
+      apiKey: ((isFallback ? ui.settings.fallbackApiKey.value : ui.settings.apiKey.value) || ui.settings.apiKey.value).trim(),
+    };
+  }
+
+  function populateModelSuggestions(kind, models) {
+    const isFallback = kind === 'fallback';
+    const list = isFallback ? ui.settings.fallbackModelList : ui.settings.modelList;
+    const input = isFallback ? ui.settings.fallbackModel : ui.settings.model;
+    if (!list || !input) return;
+    list.innerHTML = models
+      .map((model) => `<option value="${escapeHtml(model)}"></option>`)
+      .join('');
+    if (!input.value.trim() && models[0]) {
+      input.value = models[0];
+    }
+  }
+
+  async function fetchModelsFor(kind) {
+    const config = getModelListConfig(kind);
+    if (!config.endpoint || !config.apiKey) {
+      setStatus('\\u8bf7\\u5148\\u586b\\u5199\\u5bf9\\u5e94\\u7684 Endpoint \\u548c API Key\\uff0c\\u518d\\u83b7\\u53d6\\u6a21\\u578b\\u5217\\u8868\\u3002', true);
+      return;
+    }
+
+    setStatus('\\u6b63\\u5728\\u83b7\\u53d6\\u6a21\\u578b\\u5217\\u8868...', false);
+    try {
+      const response = await sendRuntimeMessage({
+        type: 'nai-list-models',
+        payload: config,
+      });
+
+      if (!response?.ok) {
+        throw new Error(response?.error || '\\u83b7\\u53d6\\u6a21\\u578b\\u5217\\u8868\\u5931\\u8d25');
+      }
+
+      const models = Array.isArray(response.models) ? response.models : [];
+      populateModelSuggestions(kind, models);
+      setStatus(
+        models.length
+          ? `\u5df2\u52a0\u8f7d ${models.length} \u4e2a\u6a21\u578b\u5019\u9009${kind === 'fallback' ? '\uff08\u5907\u7528\uff09' : ''}\u3002`
+          : `\u8be5\u670d\u52a1\u672a\u8fd4\u56de\u53ef\u7528\u6a21\u578b${kind === 'fallback' ? '\uff08\u5907\u7528\uff09' : ''}\u3002`,
+        !models.length
+      );
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : String(error), true);
+    }
+  }
   function getPromptConfig() {
     if (state.settings.enableRoleReplaceMode) {
       const roleReversePrompt = state.settings.roleReversePrompt?.trim();
@@ -661,21 +988,36 @@
       return;
     }
 
-    setPending(true);
+    const messages = buildMessages(promptConfig.userPrompt, promptConfig.systemPrompt);
+    const primaryConfig = buildPrimaryConfig(messages);
+
+    if (!hasCompleteModelConfig(primaryConfig)) {
+      setStatus('\u8bf7\u5148\u5b8c\u6574\u914d\u7f6e\u4e3b\u6a21\u578b\u7684\u670d\u52a1\u5546\u3001Endpoint\u3001Model \u548c API Key\u3002', true);
+      openPanel('settings');
+      return;
+    }
+
+    let fallbackConfig = null;
+    if (state.settings.enableFallbackModel) {
+      const candidate = buildFallbackConfig(messages, primaryConfig.apiKey);
+      if (hasCompleteModelConfig(candidate)) {
+        fallbackConfig = candidate;
+      }
+    }
+
+    setPending(true, '\u53cd\u63a8\u4e2d...');
     setStatus(T.statusRunning, false);
 
     try {
       const response = await sendRuntimeMessage({
         type: 'nai-llm-chat',
         payload: {
-          endpoint: state.settings.endpoint,
-          apiKey: state.settings.apiKey,
-          model: state.settings.model,
-          temperature: Number(state.settings.temperature),
-          maxTokens: Number(state.settings.maxTokens),
-          messages: buildMessages(promptConfig.userPrompt, promptConfig.systemPrompt),
+          primary: primaryConfig,
+          fallback: fallbackConfig,
         },
       });
+
+      const usedFallback = Array.isArray(response?.attempts) && response.attempts.length > 0;
 
       if (!response?.ok) {
         throw new Error(response?.error || '\u53cd\u63a8\u5931\u8d25');
@@ -693,7 +1035,11 @@
       });
 
       const copied = await copyText(resultText);
-      setStatus(copied ? T.statusDoneCopied : T.statusDoneNotCopied, !copied);
+      if (usedFallback) {
+        setStatus(copied ? T.statusDoneCopiedFallback : T.statusDoneNotCopiedFallback, !copied);
+      } else {
+        setStatus(copied ? T.statusDoneCopied : T.statusDoneNotCopied, !copied);
+      }
     } catch (error) {
       setStatus(error instanceof Error ? error.message : String(error), true);
     } finally {
@@ -812,7 +1158,7 @@
   }
 
   function startPickMode() {
-    if (state.isPickingImage) return;
+    if (!ensureExtensionContext() || state.isPickingImage) return;
     state.isPickingImage = true;
 
     document.documentElement.classList.add('nai-image-pick-mode');
@@ -867,7 +1213,7 @@
   }
 
   async function onShortcutClick(event) {
-    if (state.pending || state.isPickingImage) return;
+    if (!ensureExtensionContext() || state.pending || state.isPickingImage) return;
     if (event.button !== 0 || !event.altKey || !event.shiftKey) return;
 
     const image = findImageCandidate(event);
@@ -879,6 +1225,8 @@
   }
 
   function applySettingsToInputs() {
+    ui.settings.providerPreset.value = state.settings.providerPreset;
+    ui.settings.protocol.value = state.settings.protocol;
     ui.settings.endpoint.value = state.settings.endpoint;
     ui.settings.model.value = state.settings.model;
     ui.settings.apiKey.value = state.settings.apiKey;
@@ -888,14 +1236,23 @@
     ui.settings.roleSystemPrompt.value = state.settings.roleSystemPrompt;
     ui.settings.roleReversePrompt.value = state.settings.roleReversePrompt;
     ui.settings.rolePrompt.value = state.settings.rolePrompt;
-    ui.settings.defaultCodeFence.checked = Boolean(state.settings.defaultCodeFence);
     ui.settings.temperature.value = String(state.settings.temperature);
     ui.settings.maxTokens.value = String(state.settings.maxTokens);
+    ui.settings.enableFallbackModel.checked = Boolean(state.settings.enableFallbackModel);
+    ui.settings.fallbackProviderPreset.value = state.settings.fallbackProviderPreset;
+    ui.settings.fallbackProtocol.value = state.settings.fallbackProtocol;
+    ui.settings.fallbackEndpoint.value = state.settings.fallbackEndpoint;
+    ui.settings.fallbackModel.value = state.settings.fallbackModel;
+    ui.settings.fallbackApiKey.value = state.settings.fallbackApiKey;
+    ui.settings.defaultCodeFence.checked = Boolean(state.settings.defaultCodeFence);
     ui.settings.showFloatingBall.checked = Boolean(state.settings.showFloatingBall);
+    updateFallbackSettingsVisibility();
   }
 
   function readSettingsFromInputs() {
     return {
+      providerPreset: ui.settings.providerPreset.value || DEFAULT_SETTINGS.providerPreset,
+      protocol: ui.settings.protocol.value || DEFAULT_SETTINGS.protocol,
       endpoint: ui.settings.endpoint.value.trim() || DEFAULT_SETTINGS.endpoint,
       model: ui.settings.model.value.trim() || DEFAULT_SETTINGS.model,
       apiKey: ui.settings.apiKey.value.trim(),
@@ -908,18 +1265,27 @@
       defaultCodeFence: Boolean(ui.settings.defaultCodeFence.checked),
       temperature: Number(ui.settings.temperature.value) || DEFAULT_SETTINGS.temperature,
       maxTokens: Number(ui.settings.maxTokens.value) || DEFAULT_SETTINGS.maxTokens,
+      enableFallbackModel: Boolean(ui.settings.enableFallbackModel.checked),
+      fallbackProviderPreset: ui.settings.fallbackProviderPreset.value || DEFAULT_SETTINGS.fallbackProviderPreset,
+      fallbackProtocol: ui.settings.fallbackProtocol.value || DEFAULT_SETTINGS.fallbackProtocol,
+      fallbackEndpoint: ui.settings.fallbackEndpoint.value.trim() || '',
+      fallbackModel: ui.settings.fallbackModel.value.trim() || '',
+      fallbackApiKey: ui.settings.fallbackApiKey.value.trim(),
       showFloatingBall: Boolean(ui.settings.showFloatingBall.checked),
     };
   }
 
   async function saveSettings() {
+    if (!ensureExtensionContext()) return;
     state.settings = { ...DEFAULT_SETTINGS, ...readSettingsFromInputs() };
-    await storageSet({ [SETTINGS_KEY]: state.settings });
+    const saved = await storageSet({ [SETTINGS_KEY]: state.settings });
+    if (!saved) return;
     updateFabVisibility();
     setStatus(T.statusSaved, false);
   }
 
   async function clearHistory() {
+    if (!ensureExtensionContext()) return;
     state.history = [];
     renderHistory();
     await saveHistory();
@@ -927,20 +1293,26 @@
   }
 
   function bindStorageListener() {
-    chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName !== 'local') return;
+    if (!ensureExtensionContext()) return;
 
-      if (changes[SETTINGS_KEY]?.newValue) {
-        state.settings = upgradePromptSettings({ ...DEFAULT_SETTINGS, ...changes[SETTINGS_KEY].newValue });
-        applySettingsToInputs();
-        updateFabVisibility();
-      }
+    try {
+      chrome.storage.onChanged.addListener((changes, areaName) => {
+        if (areaName !== 'local') return;
 
-      if (changes[HISTORY_KEY]?.newValue) {
-        state.history = Array.isArray(changes[HISTORY_KEY].newValue) ? changes[HISTORY_KEY].newValue : [];
-        renderHistory();
-      }
-    });
+        if (changes[SETTINGS_KEY]?.newValue) {
+          state.settings = upgradePromptSettings({ ...DEFAULT_SETTINGS, ...changes[SETTINGS_KEY].newValue });
+          applySettingsToInputs();
+          updateFabVisibility();
+        }
+
+        if (changes[HISTORY_KEY]?.newValue) {
+          state.history = Array.isArray(changes[HISTORY_KEY].newValue) ? changes[HISTORY_KEY].newValue : [];
+          renderHistory();
+        }
+      });
+    } catch (error) {
+      markContextInvalidated(error);
+    }
   }
 
   function createUI() {
@@ -981,9 +1353,24 @@
         </section>
 
         <section class="nai-md3-page nai-hidden" data-page="settings">
-          <label class="nai-md3-label">API Endpoint</label><input class="nai-md3-input" data-field="endpoint" type="text" />
-          <label class="nai-md3-label">${T.model}</label><input class="nai-md3-input" data-field="model" type="text" />
-          <label class="nai-md3-label">API Key</label><input class="nai-md3-input" data-field="apiKey" type="password" />
+          <div class="nai-md3-settings-section">
+            <div class="nai-md3-grid-2">
+              <div><label class="nai-md3-label">${T.serviceProvider}</label><select class="nai-md3-input" data-field="providerPreset"></select></div>
+              <div><label class="nai-md3-label">${T.protocol}</label><select class="nai-md3-input" data-field="protocol"></select></div>
+            </div>
+            <label class="nai-md3-label">API Endpoint</label><input class="nai-md3-input" data-field="endpoint" type="text" />
+            <div class="nai-md3-grid-2">
+              <div>
+                <label class="nai-md3-label">${T.model}</label>
+                <div class="nai-md3-input-row">
+                  <input class="nai-md3-input" data-field="model" list="nai-primary-model-list" type="text" />
+                  <button type="button" class="nai-md3-inline-action" data-action="fetch-models">${T.fetchModels}</button>
+                </div>
+                <datalist id="nai-primary-model-list"></datalist>
+              </div>
+              <div><label class="nai-md3-label">API Key</label><input class="nai-md3-input" data-field="apiKey" type="password" /></div>
+            </div>
+          </div>
           <label class="nai-md3-label">${T.systemPrompt}</label><textarea class="nai-md3-input" data-field="systemPrompt" rows="3"></textarea>
           <label class="nai-md3-label">${T.reversePrompt}</label><textarea class="nai-md3-input" data-field="reversePrompt" rows="3"></textarea>
           <label class="nai-md3-switch"><input data-field="enableRoleReplaceMode" type="checkbox" /><span>${T.roleMode}</span></label>
@@ -994,9 +1381,28 @@
             <div><label class="nai-md3-label">Temperature</label><input class="nai-md3-input" data-field="temperature" type="number" min="0" max="2" step="0.1" /></div>
             <div><label class="nai-md3-label">Max Tokens</label><input class="nai-md3-input" data-field="maxTokens" type="number" min="64" max="4096" step="1" /></div>
           </div>
+          <label class="nai-md3-switch"><input data-field="enableFallbackModel" type="checkbox" /><span>${T.fallbackMode}</span></label>
+          <div class="nai-md3-settings-section nai-hidden" data-fallback-section>
+            <div class="nai-md3-grid-2">
+              <div><label class="nai-md3-label">${T.fallbackProvider}</label><select class="nai-md3-input" data-field="fallbackProviderPreset"></select></div>
+              <div><label class="nai-md3-label">${T.fallbackProtocol}</label><select class="nai-md3-input" data-field="fallbackProtocol"></select></div>
+            </div>
+            <label class="nai-md3-label">${T.fallbackEndpoint}</label><input class="nai-md3-input" data-field="fallbackEndpoint" type="text" />
+            <div class="nai-md3-grid-2">
+              <div>
+                <label class="nai-md3-label">${T.fallbackModel}</label>
+                <div class="nai-md3-input-row">
+                  <input class="nai-md3-input" data-field="fallbackModel" list="nai-fallback-model-list" type="text" />
+                  <button type="button" class="nai-md3-inline-action" data-action="fetch-fallback-models">${T.fetchModels}</button>
+                </div>
+                <datalist id="nai-fallback-model-list"></datalist>
+              </div>
+              <div><label class="nai-md3-label">${T.fallbackApiKey}</label><input class="nai-md3-input" data-field="fallbackApiKey" type="password" /></div>
+            </div>
+          </div>
           <label class="nai-md3-switch"><input data-field="defaultCodeFence" type="checkbox" /><span>${T.defaultCodeFence}</span></label>
           <label class="nai-md3-switch"><input data-field="showFloatingBall" type="checkbox" /><span>${T.showBall}</span></label>
-          <div class="nai-md3-actions"><button type="button" class="nai-md3-primary" data-action="save-settings">${T.saveSettings}</button></div>
+          <div class="nai-md3-actions"><button type="button" data-action="test-connection">${T.testConnection}</button><button type="button" class="nai-md3-primary" data-action="save-settings">${T.saveSettings}</button></div>
         </section>
         <div class="nai-md3-resize-handle" aria-hidden="true"></div>
       </section>
@@ -1020,8 +1426,11 @@
       ui.pages[el.dataset.page] = el;
     });
 
+    ui.settings.providerPreset = root.querySelector('[data-field="providerPreset"]');
+    ui.settings.protocol = root.querySelector('[data-field="protocol"]');
     ui.settings.endpoint = root.querySelector('[data-field="endpoint"]');
     ui.settings.model = root.querySelector('[data-field="model"]');
+    ui.settings.modelList = root.querySelector('#nai-primary-model-list');
     ui.settings.apiKey = root.querySelector('[data-field="apiKey"]');
     ui.settings.systemPrompt = root.querySelector('[data-field="systemPrompt"]');
     ui.settings.reversePrompt = root.querySelector('[data-field="reversePrompt"]');
@@ -1029,10 +1438,27 @@
     ui.settings.roleSystemPrompt = root.querySelector('[data-field="roleSystemPrompt"]');
     ui.settings.roleReversePrompt = root.querySelector('[data-field="roleReversePrompt"]');
     ui.settings.rolePrompt = root.querySelector('[data-field="rolePrompt"]');
-    ui.settings.defaultCodeFence = root.querySelector('[data-field="defaultCodeFence"]');
     ui.settings.temperature = root.querySelector('[data-field="temperature"]');
     ui.settings.maxTokens = root.querySelector('[data-field="maxTokens"]');
+    ui.settings.enableFallbackModel = root.querySelector('[data-field="enableFallbackModel"]');
+    ui.settings.fallbackProviderPreset = root.querySelector('[data-field="fallbackProviderPreset"]');
+    ui.settings.fallbackProtocol = root.querySelector('[data-field="fallbackProtocol"]');
+    ui.settings.fallbackEndpoint = root.querySelector('[data-field="fallbackEndpoint"]');
+    ui.settings.fallbackModel = root.querySelector('[data-field="fallbackModel"]');
+    ui.settings.fallbackModelList = root.querySelector('#nai-fallback-model-list');
+    ui.settings.fallbackApiKey = root.querySelector('[data-field="fallbackApiKey"]');
+    ui.settings.fallbackSection = root.querySelector('[data-fallback-section]');
+    ui.settings.defaultCodeFence = root.querySelector('[data-field="defaultCodeFence"]');
     ui.settings.showFloatingBall = root.querySelector('[data-field="showFloatingBall"]');
+
+    fillSelectOptions(ui.settings.providerPreset, PROVIDER_PRESETS);
+    fillSelectOptions(ui.settings.protocol, PROTOCOL_OPTIONS);
+    fillSelectOptions(ui.settings.fallbackProviderPreset, PROVIDER_PRESETS);
+    fillSelectOptions(ui.settings.fallbackProtocol, PROTOCOL_OPTIONS);
+
+    ui.settings.providerPreset.addEventListener('change', () => syncProviderFields('primary', true));
+    ui.settings.fallbackProviderPreset.addEventListener('change', () => syncProviderFields('fallback', true));
+    ui.settings.enableFallbackModel.addEventListener('change', () => updateFallbackSettingsVisibility());
 
     ui.fab.addEventListener('click', () => openPanel('reverse'));
     bindPanelInteractions();
@@ -1057,7 +1483,10 @@
       else if (action === 'copy') {
         const copied = await copyText(state.lastResult);
         setStatus(copied ? T.statusCopied : T.statusCopyFailed, !copied);
-      } else if (action === 'wrap-code') await wrapCurrentResult();
+      } else if (action === 'fetch-models') await fetchModelsFor('primary');
+      else if (action === 'fetch-fallback-models') await fetchModelsFor('fallback');
+      else if (action === 'test-connection') await testConnection();
+      else if (action === 'wrap-code') await wrapCurrentResult();
       else if (action === 'save-settings') await saveSettings();
       else if (action === 'clear-history') await clearHistory();
       else if (action === 'history-copy') {
@@ -1087,17 +1516,23 @@
   }
 
   function bindMessageListener() {
-    chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-      if (!message || typeof message !== 'object') return false;
+    if (!ensureExtensionContext()) return;
 
-      if (message.type === 'nai-open-panel') {
-        openPanel(message.page === 'settings' ? 'settings' : 'reverse');
-        sendResponse({ ok: true });
-        return true;
-      }
+    try {
+      chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+        if (!message || typeof message !== 'object') return false;
 
-      return false;
-    });
+        if (message.type === 'nai-open-panel') {
+          openPanel(message.page === 'settings' ? 'settings' : 'reverse');
+          sendResponse({ ok: true });
+          return true;
+        }
+
+        return false;
+      });
+    } catch (error) {
+      markContextInvalidated(error);
+    }
   }
 
   async function init() {

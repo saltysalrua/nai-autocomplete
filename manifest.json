@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "NovelAI Prompt Autocomplete",
-  "version": "1.3.1",
+  "version": "1.3.2",
   "description": "NovelAI autocomplete with MD3 image reverse assistant",
   "permissions": [
     "storage",
@@ -42,7 +42,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "\u56fe\u50cf\u53cd\u63a8\u52a9\u624b",
+    "default_title": "图像反推助手",
     "default_popup": "popup.html"
   },
   "web_accessible_resources": [
