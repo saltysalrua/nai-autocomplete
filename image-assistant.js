@@ -7,8 +7,9 @@
 
   const SETTINGS_KEY = 'nai-llm-assistant-settings';
   const HISTORY_KEY = 'nai-llm-reverse-history';
+  const PANEL_LAYOUT_KEY = 'nai-llm-panel-layout';
   const MAX_HISTORY = 30;
-  const PANEL_MARGIN = 12;
+  const PANEL_MARGIN = 20;
   const PANEL_MIN_WIDTH = 320;
   const PANEL_MIN_HEIGHT = 260;
 
@@ -38,6 +39,16 @@
     roleSystemPrompt: '\u89d2\u8272\u6a21\u5f0f\u7cfb\u7edf\u63d0\u793a\u8bcd',
     roleReversePrompt: '\u89d2\u8272\u6a21\u5f0f\u53cd\u63a8\u6307\u4ee4',
     rolePrompt: '\u76ee\u6807\u89d2\u8272\u63d0\u793a\u8bcd',
+    sectionAppearance: '\u5916\u89c2',
+    sectionAppearanceHint: '\u989c\u8272\u4e0e\u9762\u677f\u884c\u4e3a',
+    sectionProvider: 'LLM \u670d\u52a1',
+    sectionProviderHint: '\u6a21\u578b\u3001Endpoint \u4e0e\u8fde\u63a5\u68c0\u67e5',
+    sectionPrompt: '\u63d0\u793a\u8bcd',
+    sectionPromptHint: '\u53cd\u63a8\u903b\u8f91\u4e0e\u89d2\u8272\u66ff\u6362',
+    sectionBehavior: '\u751f\u6210\u9009\u9879',
+    sectionBehaviorHint: '\u56fe\u7247\u53d1\u9001\u65b9\u5f0f\u4e0e\u8f93\u51fa\u884c\u4e3a',
+    sectionFallback: '\u5907\u7528\u6a21\u578b',
+    sectionFallbackHint: '\u4e3b\u6a21\u578b\u5931\u8d25\u540e\u7684\u5140\u5e95\u8def\u7531',
     defaultCodeFence: '\u9ed8\u8ba4\u4ee3\u7801\u6846\u8f93\u51fa',
     wrapCodeButton: '\u5305\u88f9\u4ee3\u7801\u6846',
     fetchModels: '\u83b7\u53d6\u6a21\u578b',
@@ -48,6 +59,7 @@
     fallbackEndpoint: '\u5907\u7528 API Endpoint',
     fallbackModel: '\u5907\u7528\u6a21\u578b',
     fallbackApiKey: '\u5907\u7528 API Key\uff08\u7559\u7a7a\u5219\u590d\u7528\u4e3b Key\uff09',
+    themePreset: '\u989c\u8272\u9884\u8bbe',
     sendImageAsDataUrl: '\u53d1\u9001\u56fe\u7247\u5185\u5bb9\uff08\u5173\u95ed\u5219\u53d1\u9001\u539f\u59cb URL\uff09',
     showBall: '\u663e\u793a\u60ac\u6d6e\u7403\uff08\u5173\u95ed\u540e\u4ec5\u53ef\u901a\u8fc7\u5feb\u6377\u952e\u6216\u6269\u5c55\u5f39\u7a97\u6253\u5f00\uff09',
     saveSettings: '\u4fdd\u5b58\u8bbe\u7f6e',
@@ -98,6 +110,7 @@
     fallbackEndpoint: 'https://api.x.ai/v1/responses',
     fallbackModel: 'grok-4-fast-reasoning',
     fallbackApiKey: '',
+    themePreset: 'sunrise',
     sendImageAsDataUrl: true,
     showFloatingBall: true,
   };
@@ -119,6 +132,12 @@
     { id: 'deepseek', label: 'DeepSeek', protocol: 'openai-chat', endpoint: 'https://api.deepseek.com/chat/completions', defaultModel: 'deepseek-chat' },
     { id: 'anthropic', label: 'Anthropic', protocol: 'anthropic-messages', endpoint: 'https://api.anthropic.com/v1/messages', defaultModel: 'claude-sonnet-4-20250514' },
     { id: 'custom', label: '\u81ea\u5b9a\u4e49', protocol: 'openai-chat', endpoint: '', defaultModel: '' },
+  ];
+  const THEME_PRESETS = [
+    { id: 'sunrise', label: '\u65e5\u7167\u5976\u6cb9' },
+    { id: 'porcelain', label: '\u74f7\u84dd\u96fe\u767d' },
+    { id: 'matcha', label: '\u62b9\u8336\u7ec7\u7eaf' },
+    { id: 'rose', label: '\u8517\u8587\u7ec6\u6c99' },
   ];
   const LEGACY_DEFAULT_PROMPTS = {
     systemPrompt: [
@@ -149,6 +168,7 @@
     hoveredImage: null,
     activePage: 'reverse',
     extensionContextInvalidated: false,
+    panelLayout: null,
     panelDrag: {
       active: false,
       startX: 0,
@@ -363,12 +383,34 @@
 
   function setResult(text) {
     state.lastResult = text || '';
-    if (ui.resultOutput) ui.resultOutput.value = state.lastResult;
+    if (ui.resultOutput) {
+      ui.resultOutput.value = state.lastResult;
+      autoResizeTextarea(ui.resultOutput);
+    }
   }
 
 
   function clamp(value, min, max) {
     return Math.min(Math.max(value, min), max);
+  }
+
+  function normalizeStoredPanelLayout(layout) {
+    if (!layout || typeof layout !== 'object') return null;
+
+    const left = Number(layout.left);
+    const top = Number(layout.top);
+    const width = Number(layout.width);
+    const height = Number(layout.height);
+
+    if (![left, top, width, height].every(Number.isFinite)) return null;
+    if (width < PANEL_MIN_WIDTH || height < PANEL_MIN_HEIGHT) return null;
+
+    return {
+      left: Math.round(left),
+      top: Math.round(top),
+      width: Math.round(width),
+      height: Math.round(height),
+    };
   }
 
   function normalizePanelRect() {
@@ -381,6 +423,38 @@
     ui.panel.style.width = `${Math.round(rect.width)}px`;
     ui.panel.style.height = `${Math.round(rect.height)}px`;
     return rect;
+  }
+
+  function getPanelLayout() {
+    if (!ui.panel || ui.panel.classList.contains('nai-hidden')) return state.panelLayout;
+    const rect = normalizePanelRect();
+    if (!rect) return null;
+
+    return {
+      left: Math.round(rect.left),
+      top: Math.round(rect.top),
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+    };
+  }
+
+  function applyPanelLayout(layout) {
+    const normalized = normalizeStoredPanelLayout(layout);
+    if (!ui.panel || !normalized) return;
+
+    ui.panel.style.left = `${normalized.left}px`;
+    ui.panel.style.top = `${normalized.top}px`;
+    ui.panel.style.right = 'auto';
+    ui.panel.style.bottom = 'auto';
+    ui.panel.style.width = `${normalized.width}px`;
+    ui.panel.style.height = `${normalized.height}px`;
+  }
+
+  function persistPanelLayout() {
+    const layout = getPanelLayout();
+    if (!layout) return;
+    state.panelLayout = layout;
+    void storageSet({ [PANEL_LAYOUT_KEY]: layout });
   }
 
   function clampPanelPosition(left, top, width, height) {
@@ -407,6 +481,12 @@
     ui.panel.style.top = `${Math.round(pos.top)}px`;
     ui.panel.style.width = `${Math.round(width)}px`;
     ui.panel.style.height = `${Math.round(height)}px`;
+    state.panelLayout = {
+      left: Math.round(pos.left),
+      top: Math.round(pos.top),
+      width: Math.round(width),
+      height: Math.round(height),
+    };
   }
 
   function onPointerMove(event) {
@@ -434,17 +514,26 @@
   }
 
   function onPointerUp() {
+    const hadLayoutInteraction = state.panelDrag.active || state.panelResize.active;
     state.panelDrag.active = false;
     state.panelResize.active = false;
     document.removeEventListener('pointermove', onPointerMove, true);
     document.removeEventListener('pointerup', onPointerUp, true);
     document.removeEventListener('pointercancel', onPointerUp, true);
+    if (hadLayoutInteraction) {
+      persistPanelLayout();
+    }
   }
 
   function startDrag(event) {
     if (!ui.panel) return;
-    const rect = normalizePanelRect();
+    const rect = ui.panel.getBoundingClientRect();
     if (!rect) return;
+
+    ui.panel.style.left = `${Math.round(rect.left)}px`;
+    ui.panel.style.top = `${Math.round(rect.top)}px`;
+    ui.panel.style.right = 'auto';
+    ui.panel.style.bottom = 'auto';
 
     state.panelDrag.active = true;
     state.panelDrag.startX = event.clientX;
@@ -494,7 +583,10 @@
       startResize(event);
     });
 
-    window.addEventListener('resize', keepPanelInsideViewport);
+    window.addEventListener('resize', () => {
+      keepPanelInsideViewport();
+      persistPanelLayout();
+    });
   }
 
   function updateFabVisibility() {
@@ -622,22 +714,30 @@
 
   function setPage(page) {
     state.activePage = page;
+    if (ui.root) {
+      ui.root.dataset.page = page;
+    }
     ui.navButtons.forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.page === page);
     });
     Object.entries(ui.pages).forEach(([name, el]) => {
       el.classList.toggle('nai-hidden', name !== page);
     });
+    requestAnimationFrame(() => autoResizeAllTextareas());
   }
 
   function openPanel(page) {
     state.isOpen = true;
+    if (state.panelLayout) {
+      applyPanelLayout(state.panelLayout);
+    }
     ui.panel.classList.remove('nai-hidden');
     setPage(page || state.activePage || 'reverse');
     keepPanelInsideViewport();
   }
 
   function closePanel() {
+    persistPanelLayout();
     state.isOpen = false;
     ui.panel.classList.add('nai-hidden');
     onPointerUp();
@@ -677,6 +777,33 @@
   function updateFallbackSettingsVisibility() {
     if (!ui.settings.fallbackSection) return;
     ui.settings.fallbackSection.classList.toggle('nai-hidden', !ui.settings.enableFallbackModel.checked);
+  }
+
+  function applyThemePreset() {
+    if (!ui.root) return;
+    ui.root.dataset.theme = state.settings.themePreset || DEFAULT_SETTINGS.themePreset;
+  }
+
+  function autoResizeTextarea(textarea) {
+    if (!(textarea instanceof HTMLTextAreaElement)) return;
+    const maxHeight = textarea.classList.contains('nai-md3-result') ? 420 : 440;
+    textarea.style.height = 'auto';
+    const nextHeight = Math.min(textarea.scrollHeight, maxHeight);
+    textarea.style.height = `${Math.max(nextHeight, 72)}px`;
+    textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }
+
+  function autoResizeAllTextareas() {
+    if (!ui.root) return;
+    ui.root.querySelectorAll('textarea').forEach((textarea) => autoResizeTextarea(textarea));
+  }
+
+  function bindTextareaAutosize() {
+    if (!ui.root) return;
+    ui.root.querySelectorAll('textarea').forEach((textarea) => {
+      textarea.addEventListener('input', () => autoResizeTextarea(textarea));
+      autoResizeTextarea(textarea);
+    });
   }
 
   function syncProviderFields(kind, forceModel) {
@@ -1249,10 +1376,12 @@
     ui.settings.fallbackEndpoint.value = state.settings.fallbackEndpoint;
     ui.settings.fallbackModel.value = state.settings.fallbackModel;
     ui.settings.fallbackApiKey.value = state.settings.fallbackApiKey;
+    ui.settings.themePreset.value = state.settings.themePreset || DEFAULT_SETTINGS.themePreset;
     ui.settings.sendImageAsDataUrl.checked = Boolean(state.settings.sendImageAsDataUrl);
     ui.settings.defaultCodeFence.checked = Boolean(state.settings.defaultCodeFence);
     ui.settings.showFloatingBall.checked = Boolean(state.settings.showFloatingBall);
     updateFallbackSettingsVisibility();
+    requestAnimationFrame(() => autoResizeAllTextareas());
   }
 
   function readSettingsFromInputs() {
@@ -1277,6 +1406,7 @@
       fallbackEndpoint: ui.settings.fallbackEndpoint.value.trim() || '',
       fallbackModel: ui.settings.fallbackModel.value.trim() || '',
       fallbackApiKey: ui.settings.fallbackApiKey.value.trim(),
+      themePreset: ui.settings.themePreset.value || DEFAULT_SETTINGS.themePreset,
       sendImageAsDataUrl: Boolean(ui.settings.sendImageAsDataUrl.checked),
       showFloatingBall: Boolean(ui.settings.showFloatingBall.checked),
     };
@@ -1287,6 +1417,7 @@
     state.settings = { ...DEFAULT_SETTINGS, ...readSettingsFromInputs() };
     const saved = await storageSet({ [SETTINGS_KEY]: state.settings });
     if (!saved) return;
+    applyThemePreset();
     updateFabVisibility();
     setStatus(T.statusSaved, false);
   }
@@ -1309,6 +1440,7 @@
         if (changes[SETTINGS_KEY]?.newValue) {
           state.settings = upgradePromptSettings({ ...DEFAULT_SETTINGS, ...changes[SETTINGS_KEY].newValue });
           applySettingsToInputs();
+          applyThemePreset();
           updateFabVisibility();
         }
 
@@ -1339,6 +1471,7 @@
           <button type="button" data-page="settings">${T.tabSettings}</button>
         </nav>
 
+        <div class="nai-md3-body">
         <section class="nai-md3-page" data-page="reverse">
           <div class="nai-md3-hint">${T.quickHint}<kbd>Alt</kbd> + <kbd>Shift</kbd> + \u70b9\u51fb\u56fe\u7247</div>
           <div class="nai-md3-actions nai-md3-actions-reverse">
@@ -1360,7 +1493,20 @@
         </section>
 
         <section class="nai-md3-page nai-hidden" data-page="settings">
+          <div class="nai-md3-settings-section nai-md3-settings-appearance">
+            <div class="nai-md3-section-head">
+              <div class="nai-md3-section-title">${T.sectionAppearance}</div>
+              <div class="nai-md3-section-note">${T.sectionAppearanceHint}</div>
+            </div>
+            <div><label class="nai-md3-label">${T.themePreset}</label><select class="nai-md3-input" data-field="themePreset"></select></div>
+            <label class="nai-md3-switch"><input data-field="showFloatingBall" type="checkbox" /><span>${T.showBall}</span></label>
+          </div>
+
           <div class="nai-md3-settings-section">
+            <div class="nai-md3-section-head">
+              <div class="nai-md3-section-title">${T.sectionProvider}</div>
+              <div class="nai-md3-section-note">${T.sectionProviderHint}</div>
+            </div>
             <div class="nai-md3-grid-2">
               <div><label class="nai-md3-label">${T.serviceProvider}</label><select class="nai-md3-input" data-field="providerPreset"></select></div>
               <div><label class="nai-md3-label">${T.protocol}</label><select class="nai-md3-input" data-field="protocol"></select></div>
@@ -1378,18 +1524,39 @@
               <div><label class="nai-md3-label">API Key</label><input class="nai-md3-input" data-field="apiKey" type="password" /></div>
             </div>
           </div>
-          <label class="nai-md3-label">${T.systemPrompt}</label><textarea class="nai-md3-input" data-field="systemPrompt" rows="3"></textarea>
-          <label class="nai-md3-label">${T.reversePrompt}</label><textarea class="nai-md3-input" data-field="reversePrompt" rows="3"></textarea>
-          <label class="nai-md3-switch"><input data-field="enableRoleReplaceMode" type="checkbox" /><span>${T.roleMode}</span></label>
-          <label class="nai-md3-label">${T.roleSystemPrompt}</label><textarea class="nai-md3-input" data-field="roleSystemPrompt" rows="3"></textarea>
-          <label class="nai-md3-label">${T.roleReversePrompt}</label><textarea class="nai-md3-input" data-field="roleReversePrompt" rows="3"></textarea>
-          <label class="nai-md3-label">${T.rolePrompt}</label><textarea class="nai-md3-input" data-field="rolePrompt" rows="2"></textarea>
-          <div class="nai-md3-grid-2">
-            <div><label class="nai-md3-label">Temperature</label><input class="nai-md3-input" data-field="temperature" type="number" min="0" max="2" step="0.1" /></div>
-            <div><label class="nai-md3-label">Max Tokens</label><input class="nai-md3-input" data-field="maxTokens" type="number" min="64" max="4096" step="1" /></div>
+
+          <div class="nai-md3-settings-section">
+            <div class="nai-md3-section-head">
+              <div class="nai-md3-section-title">${T.sectionPrompt}</div>
+              <div class="nai-md3-section-note">${T.sectionPromptHint}</div>
+            </div>
+            <label class="nai-md3-label">${T.systemPrompt}</label><textarea class="nai-md3-input" data-field="systemPrompt" rows="3"></textarea>
+            <label class="nai-md3-label">${T.reversePrompt}</label><textarea class="nai-md3-input" data-field="reversePrompt" rows="3"></textarea>
+            <label class="nai-md3-switch"><input data-field="enableRoleReplaceMode" type="checkbox" /><span>${T.roleMode}</span></label>
+            <label class="nai-md3-label">${T.roleSystemPrompt}</label><textarea class="nai-md3-input" data-field="roleSystemPrompt" rows="3"></textarea>
+            <label class="nai-md3-label">${T.roleReversePrompt}</label><textarea class="nai-md3-input" data-field="roleReversePrompt" rows="3"></textarea>
+            <label class="nai-md3-label">${T.rolePrompt}</label><textarea class="nai-md3-input" data-field="rolePrompt" rows="2"></textarea>
           </div>
-          <label class="nai-md3-switch"><input data-field="enableFallbackModel" type="checkbox" /><span>${T.fallbackMode}</span></label>
+
+          <div class="nai-md3-settings-section">
+            <div class="nai-md3-section-head">
+              <div class="nai-md3-section-title">${T.sectionBehavior}</div>
+              <div class="nai-md3-section-note">${T.sectionBehaviorHint}</div>
+            </div>
+            <div class="nai-md3-grid-2">
+              <div><label class="nai-md3-label">Temperature</label><input class="nai-md3-input" data-field="temperature" type="number" min="0" max="2" step="0.1" /></div>
+              <div><label class="nai-md3-label">Max Tokens</label><input class="nai-md3-input" data-field="maxTokens" type="number" min="64" max="4096" step="1" /></div>
+            </div>
+            <label class="nai-md3-switch"><input data-field="sendImageAsDataUrl" type="checkbox" /><span>${T.sendImageAsDataUrl}</span></label>
+            <label class="nai-md3-switch"><input data-field="defaultCodeFence" type="checkbox" /><span>${T.defaultCodeFence}</span></label>
+            <label class="nai-md3-switch"><input data-field="enableFallbackModel" type="checkbox" /><span>${T.fallbackMode}</span></label>
+          </div>
+
           <div class="nai-md3-settings-section nai-hidden" data-fallback-section>
+            <div class="nai-md3-section-head">
+              <div class="nai-md3-section-title">${T.sectionFallback}</div>
+              <div class="nai-md3-section-note">${T.sectionFallbackHint}</div>
+            </div>
             <div class="nai-md3-grid-2">
               <div><label class="nai-md3-label">${T.fallbackProvider}</label><select class="nai-md3-input" data-field="fallbackProviderPreset"></select></div>
               <div><label class="nai-md3-label">${T.fallbackProtocol}</label><select class="nai-md3-input" data-field="fallbackProtocol"></select></div>
@@ -1407,11 +1574,10 @@
               <div><label class="nai-md3-label">${T.fallbackApiKey}</label><input class="nai-md3-input" data-field="fallbackApiKey" type="password" /></div>
             </div>
           </div>
-          <label class="nai-md3-switch"><input data-field="sendImageAsDataUrl" type="checkbox" /><span>${T.sendImageAsDataUrl}</span></label>
-          <label class="nai-md3-switch"><input data-field="defaultCodeFence" type="checkbox" /><span>${T.defaultCodeFence}</span></label>
-          <label class="nai-md3-switch"><input data-field="showFloatingBall" type="checkbox" /><span>${T.showBall}</span></label>
-          <div class="nai-md3-actions"><button type="button" data-action="test-connection">${T.testConnection}</button><button type="button" class="nai-md3-primary" data-action="save-settings">${T.saveSettings}</button></div>
+
+          <div class="nai-md3-actions nai-md3-settings-actions"><button type="button" data-action="test-connection">${T.testConnection}</button><button type="button" class="nai-md3-primary" data-action="save-settings">${T.saveSettings}</button></div>
         </section>
+        </div>
         <div class="nai-md3-resize-handle" aria-hidden="true"></div>
       </section>
     `;
@@ -1436,6 +1602,7 @@
 
     ui.settings.providerPreset = root.querySelector('[data-field="providerPreset"]');
     ui.settings.protocol = root.querySelector('[data-field="protocol"]');
+    ui.settings.themePreset = root.querySelector('[data-field="themePreset"]');
     ui.settings.endpoint = root.querySelector('[data-field="endpoint"]');
     ui.settings.model = root.querySelector('[data-field="model"]');
     ui.settings.modelList = root.querySelector('#nai-primary-model-list');
@@ -1462,15 +1629,22 @@
 
     fillSelectOptions(ui.settings.providerPreset, PROVIDER_PRESETS);
     fillSelectOptions(ui.settings.protocol, PROTOCOL_OPTIONS);
+    fillSelectOptions(ui.settings.themePreset, THEME_PRESETS);
     fillSelectOptions(ui.settings.fallbackProviderPreset, PROVIDER_PRESETS);
     fillSelectOptions(ui.settings.fallbackProtocol, PROTOCOL_OPTIONS);
 
     ui.settings.providerPreset.addEventListener('change', () => syncProviderFields('primary', true));
     ui.settings.fallbackProviderPreset.addEventListener('change', () => syncProviderFields('fallback', true));
     ui.settings.enableFallbackModel.addEventListener('change', () => updateFallbackSettingsVisibility());
+    ui.settings.themePreset.addEventListener('change', () => {
+      state.settings.themePreset = ui.settings.themePreset.value || DEFAULT_SETTINGS.themePreset;
+      applyThemePreset();
+    });
 
     ui.fab.addEventListener('click', () => openPanel('reverse'));
     bindPanelInteractions();
+    bindTextareaAutosize();
+    applyPanelLayout(state.panelLayout);
 
     // Direct tab listeners: avoid delegated click edge cases.
     ui.navButtons.forEach((btn) => {
@@ -1513,11 +1687,12 @@
   }
 
   async function initState() {
-    const data = await storageGet([SETTINGS_KEY, HISTORY_KEY]);
+    const data = await storageGet([SETTINGS_KEY, HISTORY_KEY, PANEL_LAYOUT_KEY]);
     const rawSettings = { ...DEFAULT_SETTINGS, ...(data[SETTINGS_KEY] || {}) };
     const upgradedSettings = upgradePromptSettings(rawSettings);
     state.settings = upgradedSettings;
     state.history = Array.isArray(data[HISTORY_KEY]) ? data[HISTORY_KEY] : [];
+    state.panelLayout = normalizeStoredPanelLayout(data[PANEL_LAYOUT_KEY]);
 
     if (JSON.stringify(rawSettings) !== JSON.stringify(upgradedSettings)) {
       await storageSet({ [SETTINGS_KEY]: upgradedSettings });
@@ -1549,6 +1724,7 @@
     createUI();
 
     applySettingsToInputs();
+    applyThemePreset();
     updateFabVisibility();
     updatePreview();
     renderHistory();

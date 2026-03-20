@@ -3,6 +3,16 @@ chrome.runtime.onInstalled.addListener(() => {
   console.log('[NAI-AC] Extension installed');
 });
 
+chrome.action.onClicked.addListener((tab) => {
+  if (!tab?.id) return;
+
+  chrome.tabs.sendMessage(tab.id, { type: 'nai-open-panel', page: 'reverse' }, () => {
+    if (chrome.runtime.lastError) {
+      console.warn('[NAI-AC] Failed to open panel from action click:', chrome.runtime.lastError.message);
+    }
+  });
+});
+
 function arrayBufferToBase64(buffer) {
   const bytes = new Uint8Array(buffer);
   const chunkSize = 0x8000;
