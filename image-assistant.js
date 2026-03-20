@@ -138,6 +138,9 @@
     { id: 'porcelain', label: '\u74f7\u84dd\u96fe\u767d' },
     { id: 'matcha', label: '\u62b9\u8336\u7ec7\u7eaf' },
     { id: 'rose', label: '\u8517\u8587\u7ec6\u6c99' },
+    { id: 'ember', label: '\u4f59\u70ec\u66ae\u68d5' },
+    { id: 'midnight', label: '\u6df1\u6d77\u591c\u84dd' },
+    { id: 'moss', label: '\u9752\u82d4\u5e7d\u591c' },
   ];
   const LEGACY_DEFAULT_PROMPTS = {
     systemPrompt: [

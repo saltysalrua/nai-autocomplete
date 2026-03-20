@@ -1,5 +1,5 @@
-﻿/**
- * NovelAI 鎻愮ず璇嶈嚜鍔ㄨˉ鍏?- Content Script
+/**
+ * NovelAI 提示词自动补全 - Content Script
  */
 (function() {
   'use strict';
@@ -14,9 +14,9 @@
     DEBOUNCE_DELAY: 150,
   };
 
-  // 鍏ㄥ眬璁剧疆
+  // 全局设置
   let settings = {
-    convertSlashToSpace: false, // 鏂滄潬杞┖鏍?
+    convertSlashToSpace: false, // 下划线与空格互转
   };
 
   let allTags = [];
@@ -25,7 +25,7 @@
   let selectedIndex = 0;
   let currentResults = [];
   let currentQuery = '';
-  let lastRenderedQuery = ''; // 鐢ㄤ簬鍒ゆ柇鏄惁闇€瑕侀噸鏂版覆鏌?
+  let lastRenderedQuery = ''; // 用于判断是否需要重新渲染
   let autocompleteContainer = null;
 
   function applyThemePreset(themePreset) {
@@ -47,7 +47,7 @@
     }
   }
 
-  // CSV 瑙ｆ瀽 - 姝ｇ‘澶勭悊寮曞彿鍐呯殑閫楀彿
+  // CSV 解析，正确处理引号中的逗号
   function parseCSVLine(line) {
     const result = [];
     let current = '';
@@ -67,7 +67,7 @@
     return result;
   }
 
-  // 鍔犺浇鏍囩
+  // 加载标签
   async function loadTags() {
     try {
       const cached = localStorage.getItem('nai-ac-tags');
@@ -75,7 +75,7 @@
       if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 86400000) {
         allTags = JSON.parse(cached);
         isLoading = false;
-        console.log(`[NAI-AC] 缂撳瓨鍔犺浇 ${allTags.length} 鏍囩`);
+        console.log(`[NAI-AC] 已从缓存加载 ${allTags.length} 个标签`);
         return;
       }
 
@@ -102,14 +102,14 @@
       localStorage.setItem('nai-ac-tags', JSON.stringify(allTags.slice(0, 50000)));
       localStorage.setItem('nai-ac-tags-time', Date.now().toString());
       isLoading = false;
-      console.log(`[NAI-AC] 鍔犺浇 ${allTags.length} 鏍囩`);
+      console.log(`[NAI-AC] 已加载 ${allTags.length} 个标签`);
     } catch (e) {
-      console.error('[NAI-AC] 鍔犺浇澶辫触:', e);
+      console.error('[NAI-AC] 标签加载失败:', e);
       isLoading = false;
     }
   }
 
-  // 鎼滅储
+  // 搜索标签
   function searchTags(query) {
     if (!query || query.length < CONFIG.MIN_QUERY_LENGTH) return [];
     const q = query.toLowerCase().replace(/_/g, ' ');
@@ -135,7 +135,7 @@
     return results.sort((a, b) => b.score - a.score).slice(0, CONFIG.MAX_RESULTS);
   }
 
-  // 鍒涘缓琛ュ叏瀹瑰櫒
+  // 创建补全容器
   function createContainer() {
     if (autocompleteContainer) return autocompleteContainer;
     const c = document.createElement('div');
@@ -154,7 +154,7 @@
     document.body.appendChild(c);
     autocompleteContainer = c;
 
-    // 鏂滄潬寮€鍏充簨浠?
+    // 下划线互转开关
     const slashSwitch = c.querySelector('#nai-slash-switch');
     slashSwitch.checked = settings.convertSlashToSpace;
     slashSwitch.addEventListener('change', (e) => {
@@ -183,29 +183,106 @@
     return n.toString();
   }
 
-  // 瑙ｆ瀽褰撳墠杈撳叆鐨勪笂涓嬫枃锛堟潈閲嶃€乤rtist鍓嶇紑绛夛級
-  function parseCurrentContext() {
-    const sel = window.getSelection();
-    if (!sel.rangeCount) return { weight: 1.0, hasArtist: false };
-    const range = sel.getRangeAt(0);
+  function getEditorFromRange(range) {
     const node = range.startContainer;
-    if (node.nodeType !== Node.TEXT_NODE) return { weight: 1.0, hasArtist: false };
+    return node.nodeType === Node.TEXT_NODE
+      ? node.parentElement?.closest('.ProseMirror')
+      : node.closest?.('.ProseMirror');
+  }
 
-    const text = node.textContent;
-    const pos = range.startOffset;
-    let start = pos;
-    while (start > 0 && text[start - 1] !== ',' && text[start - 1] !== '\n') start--;
-    while (start < pos && text[start] === ' ') start++;
-    const segment = text.slice(start, pos);
+  function createRangeFromTextOffsets(root, startOffset, endOffset) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const range = document.createRange();
+    let node = null;
+    let currentOffset = 0;
+    let startNode = null;
+    let startNodeOffset = 0;
+    let endNode = null;
+    let endNodeOffset = 0;
+
+    while ((node = walker.nextNode())) {
+      const textLength = node.textContent?.length || 0;
+      const nextOffset = currentOffset + textLength;
+
+      if (!startNode && startOffset <= nextOffset) {
+        startNode = node;
+        startNodeOffset = Math.max(0, startOffset - currentOffset);
+      }
+
+      if (!endNode && endOffset <= nextOffset) {
+        endNode = node;
+        endNodeOffset = Math.max(0, endOffset - currentOffset);
+        break;
+      }
+
+      currentOffset = nextOffset;
+    }
+
+    if (!startNode || !endNode) return null;
+
+    range.setStart(startNode, startNodeOffset);
+    range.setEnd(endNode, endNodeOffset);
+    return range;
+  }
+
+  function getSegmentContext() {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return null;
+
+    const range = sel.getRangeAt(0);
+    const editor = activeEditor || getEditorFromRange(range);
+    if (!editor) return null;
+
+    const beforeRange = range.cloneRange();
+    beforeRange.selectNodeContents(editor);
+    beforeRange.setEnd(range.startContainer, range.startOffset);
+
+    const afterRange = range.cloneRange();
+    afterRange.selectNodeContents(editor);
+    afterRange.setStart(range.startContainer, range.startOffset);
+
+    const beforeText = beforeRange.toString();
+    const afterText = afterRange.toString();
+    const segmentBreak = Math.max(beforeText.lastIndexOf(','), beforeText.lastIndexOf('\n'));
+    const rawSegment = beforeText.slice(segmentBreak + 1);
+    const leadingSpaceLength = rawSegment.match(/^\s*/)?.[0].length || 0;
+    const segmentText = rawSegment.slice(leadingSpaceLength);
+    const caretOffset = beforeText.length;
+    const segmentStartOffset = caretOffset - segmentText.length;
+    const segmentTailMatch = afterText.match(/^[^,\n]*/);
+    const segmentTailText = segmentTailMatch ? segmentTailMatch[0] : '';
+    const afterSegmentText = afterText.slice(segmentTailText.length);
+    const nextMeaningfulChar = afterSegmentText.replace(/^\s+/, '').charAt(0);
+    const segmentRange = createRangeFromTextOffsets(editor, segmentStartOffset, caretOffset);
+
+    if (!segmentRange) return null;
+
+    return {
+      editor,
+      segmentText,
+      segmentTailText,
+      segmentStartOffset,
+      caretOffset,
+      nextMeaningfulChar,
+      segmentRange,
+    };
+  }
+
+  // 解析当前上下文（权重、artist 前缀等）
+  function parseCurrentContext() {
+    const context = getSegmentContext();
+    if (!context) return { weight: 1.0, hasArtist: false };
+
+    const { segmentText: segment } = context;
 
     let weight = 1.0;
     let hasArtist = false;
 
-    // 鍖归厤鏉冮噸 - 鏀寔璐熸暟鏉冮噸濡?-1.3::tag锛屾敮鎸佷腑鑻辨枃鍐掑彿
+    // 匹配权重，支持负数和中英文冒号
     const weightMatch = segment.match(/^(-?\d+\.?\d*)(?::|：){2}/);
     if (weightMatch) weight = parseFloat(weightMatch[1]);
 
-    // 鍖归厤 artist - 鏀寔 artist:tag, -1.3::artist:tag, -1.3::artist:tag::
+    // 匹配 artist 前缀
     if (/artist(?::|：)/.test(segment)) {
       hasArtist = true;
     }
@@ -217,7 +294,7 @@
     const c = createContainer();
     const list = c.querySelector('.nai-autocomplete-list');
 
-    // 濡傛灉 query 娌″彉涓斿凡鏈夌粨鏋滐紝鍙洿鏂颁綅缃紝涓嶉噸鏂版覆鏌擄紙淇濈暀鐢ㄦ埛淇敼锛?
+    // query 没变且已有结果时，只更新位置，不重复渲染
     if (query === lastRenderedQuery && currentResults.length > 0) {
       positionAutocomplete(editor);
       if (!c.classList.contains('visible')) {
@@ -226,13 +303,13 @@
       return;
     }
 
-    // query 鏀瑰彉浜嗭紝閲嶆柊娓叉煋
+    // query 变化后重新渲染
     lastRenderedQuery = query;
     currentResults = results;
     currentQuery = query;
     selectedIndex = 0;
 
-    // 鑾峰彇褰撳墠涓婁笅鏂?
+    // 获取当前上下文
     const context = parseCurrentContext();
 
     if (isLoading) {
@@ -264,7 +341,7 @@
         </div>
       `}).join('');
 
-      // 鍒濆鍖栨潈閲嶅拰 artist 鐘舵€?
+      // 初始化权重和 artist 状态
       results.forEach((tag, i) => {
         tag.weight = context.weight;
         if (tag.category === '1') {
@@ -272,25 +349,25 @@
         }
       });
 
-      // 鐢诲笀澶嶉€夋浜嬩欢 - 鍒嗗紑澶勭悊 checkbox 鍜?label
+      // artist 复选框事件
       list.querySelectorAll('.nai-artist-check').forEach(chk => {
-        // checkbox 鑷韩鐨勭偣鍑伙細闃绘鍐掓场锛岃娴忚鍣ㄥ鐞嗗垏鎹?
+        // checkbox 自身点击时阻止冒泡，避免误触整项选择
         chk.addEventListener('mousedown', e => {
           e.stopPropagation();
         });
         chk.addEventListener('click', e => {
           e.stopPropagation();
         });
-        // checkbox 鐘舵€佸彉鍖栨椂鍚屾鍒版暟鎹?
+        // checkbox 状态变化时同步到当前结果
         chk.addEventListener('change', e => {
           e.stopPropagation();
           currentResults[+chk.dataset.index].useArtistPrefix = chk.checked;
         });
       });
 
-      // 鐢诲笀 label 鐐瑰嚮锛堥潪 checkbox 閮ㄥ垎锛?
+      // artist label 点击事件
       list.querySelectorAll('.nai-artist-toggle').forEach(label => {
-        // 闃绘 label 鐨勯粯璁?click 琛屼负锛堜細鑷姩鍒囨崲 checkbox锛?
+        // 阻止 label 默认 click，避免重复切换
         label.addEventListener('click', e => {
           if (!e.target.classList.contains('nai-artist-check')) {
             e.preventDefault();
@@ -298,7 +375,7 @@
           }
         });
         label.addEventListener('mousedown', e => {
-          // 濡傛灉鐐瑰嚮鐨勬槸 checkbox 鏈韩锛屼笉澶勭悊锛堣涓婇潰鐨勫鐞嗗櫒澶勭悊锛?
+          // 如果点的是 checkbox 本身，交给上面的处理器
           if (e.target.classList.contains('nai-artist-check')) {
             return;
           }
@@ -310,16 +387,17 @@
         });
       });
 
-      // 鏉冮噸鎸夐挳浜嬩欢
+      // 权重按钮事件
       list.querySelectorAll('.nai-weight-btn').forEach(btn => {
         btn.addEventListener('mousedown', (e) => {
           e.preventDefault();
           e.stopPropagation();
           const idx = +btn.dataset.index;
           const valueEl = list.querySelector(`.nai-weight-value[data-index="${idx}"]`);
-          let val = parseFloat(valueEl.textContent) || 1.0;
+          const currentValue = parseFloat(valueEl.textContent);
+          let val = Number.isFinite(currentValue) ? currentValue : 1.0;
           val = btn.classList.contains('nai-weight-up') ? val + 0.1 : val - 0.1;
-          // 鏀寔璐熸暟鏉冮噸锛岃寖鍥?-2.0 鍒?2.0
+          // 支持负数权重，范围限制在 -2.0 到 2.0
           val = Math.max(-2.0, Math.min(2.0, val));
           valueEl.textContent = val.toFixed(1);
           currentResults[idx].weight = val;
@@ -327,9 +405,9 @@
       });
 
       list.querySelectorAll('.nai-autocomplete-item').forEach(item => {
-        // 鐢?mousedown 骞堕樆姝㈤粯璁よ涓猴紝闃叉缂栬緫鍣ㄥけ鐒?
+        // 用 mousedown 并阻止默认行为，避免编辑器失焦
         item.addEventListener('mousedown', (e) => {
-          // 濡傛灉鐐瑰嚮鐨勬槸鎺т欢锛堟寜閽€佸閫夋銆乴abel锛夛紝涓嶈Е鍙戦€夋嫨
+          // 点击的是控件时，不触发整项补全
           if (e.target.closest('.nai-weight-btn') ||
               e.target.closest('.nai-artist-toggle') ||
               e.target.closest('.nai-artist-check')) {
@@ -352,34 +430,77 @@
     autocompleteContainer?.classList.remove('visible');
     currentResults = [];
     selectedIndex = 0;
-    lastRenderedQuery = ''; // 閲嶇疆浠ヤ究涓嬫閲嶆柊娓叉煋
+    lastRenderedQuery = ''; // 重置，确保下次重新渲染
+  }
+
+  function getCaretRect(editor) {
+    const sel = window.getSelection();
+    if (!sel?.rangeCount) return editor.getBoundingClientRect();
+
+    const range = sel.getRangeAt(0).cloneRange();
+    range.collapse(true);
+
+    let rect = range.getBoundingClientRect();
+    if (rect && (rect.width || rect.height)) return rect;
+
+    const marker = document.createElement('span');
+    marker.textContent = '\u200b';
+    marker.setAttribute('data-nai-caret-marker', 'true');
+
+    try {
+      range.insertNode(marker);
+      rect = marker.getBoundingClientRect();
+    } finally {
+      marker.remove();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    return rect && (rect.width || rect.height) ? rect : editor.getBoundingClientRect();
   }
 
   function positionAutocomplete(editor) {
     if (!autocompleteContainer || !editor) return;
-    const rect = editor.getBoundingClientRect();
-    const containerHeight = 320;
+    const editorRect = editor.getBoundingClientRect();
+    const caretRect = getCaretRect(editor);
+    const viewportPadding = 8;
+    const gap = 10;
+    const panelWidth = Math.min(
+      Math.max(autocompleteContainer.offsetWidth || 360, 280),
+      400
+    );
+    const panelHeight = Math.min(
+      Math.max(autocompleteContainer.offsetHeight || 320, 180),
+      320
+    );
 
-    // 浼樺厛鏄剧ず鍦ㄤ笅鏂?
-    let top = rect.bottom + 4;
+    const spaceBelow = window.innerHeight - caretRect.bottom - viewportPadding;
+    const spaceAbove = caretRect.top - viewportPadding;
 
-    // 濡傛灉涓嬫柟绌洪棿涓嶈冻锛屽皾璇曚笂鏂?
-    if (top + containerHeight > window.innerHeight) {
-      const topAbove = rect.top - containerHeight - 4;
-      // 鍙湁涓婃柟鏈夎冻澶熺┖闂存墠绉诲埌涓婃柟锛屽惁鍒欎繚鎸佷笅鏂癸紙鍏佽婊氬姩锛?
-      if (topAbove >= 0) {
-        top = topAbove;
-      } else {
-        // 涓よ竟閮戒笉澶燂紝璐寸潃瑙嗗彛搴曢儴
-        top = Math.max(4, window.innerHeight - containerHeight - 4);
-      }
+    let top;
+    if (spaceBelow >= panelHeight || spaceBelow >= spaceAbove) {
+      top = caretRect.bottom + gap;
+    } else {
+      top = caretRect.top - panelHeight - gap;
     }
 
-    // 纭繚涓嶈秴鍑洪《閮?
-    top = Math.max(4, top);
+    top = Math.min(
+      Math.max(viewportPadding, top),
+      Math.max(viewportPadding, window.innerHeight - panelHeight - viewportPadding)
+    );
 
-    autocompleteContainer.style.top = top + 'px';
-    autocompleteContainer.style.left = Math.min(rect.left, window.innerWidth - 380) + 'px';
+    let left = caretRect.left;
+    if (left + panelWidth > window.innerWidth - viewportPadding) {
+      left = window.innerWidth - panelWidth - viewportPadding;
+    }
+    left = Math.max(viewportPadding, left);
+
+    if (left < editorRect.left - panelWidth * 0.5) {
+      left = Math.max(viewportPadding, editorRect.left);
+    }
+
+    autocompleteContainer.style.top = `${top}px`;
+    autocompleteContainer.style.left = `${left}px`;
   }
 
   function updateSelection() {
@@ -389,58 +510,56 @@
   }
 
   function getCurrentWord() {
-    const sel = window.getSelection();
-    if (!sel.rangeCount) return '';
-    const range = sel.getRangeAt(0);
-    const node = range.startContainer;
-    if (node.nodeType !== Node.TEXT_NODE) return '';
-    const text = node.textContent;
-    const pos = range.startOffset;
-    let start = pos;
-    // 鏀寔閫楀彿銆佹崲琛屻€佷互鍙婅棣栦綔涓哄垎闅?
-    while (start > 0 && text[start - 1] !== ',' && text[start - 1] !== '\n') start--;
-    while (start < pos && text[start] === ' ') start++;
-    let word = text.slice(start, pos).trim();
+    const context = getSegmentContext();
+    if (!context) return '';
 
-    // 濡傛灉 word 涓虹┖锛屼笉闇€瑕佺户缁鐞?
+    let word = context.segmentText.trim();
+
+    // 当前片段为空时，不继续处理
     if (!word) return '';
 
-    // 澶勭悊鍚勭鏍煎紡锛屾彁鍙栧疄闄呰鎼滅储鐨?tag 閮ㄥ垎
-    // 鏀寔鑻辨枃鍐掑彿 : 鍜屼腑鏂囧啋鍙?锛?
-    // 鏀寔璐熸暟鏉冮噸锛屽 -1.3::tag::
+    // 处理各种格式，提取实际需要搜索的 tag 片段
 
-    // -1.3::artist:tag:: - 鎻愬彇 tag锛堝凡瀹屾垚鏍煎紡锛屽彲缂栬緫锛?
+    // -1.3::artist:tag:: -> tag
     let match = word.match(/^(-?\d+\.?\d*)(?::|：){2}artist(?::|：)([^:：]+)(?::|：){2}$/);
     if (match) return match[2];
 
-    // -1.3::tag:: - 鎻愬彇 tag锛堝凡瀹屾垚鏍煎紡锛屽彲缂栬緫锛?
+    // -1.3::tag:: -> tag
     match = word.match(/^(-?\d+\.?\d*)(?::|：){2}([^:：]+)(?::|：){2}$/);
     if (match) return match[2];
 
-    // -1.3::artist:tag::xxx - 鎻愬彇 xxx锛堝湪瀹屾垚tag鍚庣户缁緭鍏ワ級
+    // -1.3::artist:tag: -> tag
+    match = word.match(/^(-?\d+\.?\d*)(?::|：){2}artist(?::|：)([^:：]+)(?::|：)$/);
+    if (match) return match[2];
+
+    // -1.3::tag: -> tag
+    match = word.match(/^(-?\d+\.?\d*)(?::|：){2}([^:：]+)(?::|：)$/);
+    if (match) return match[2];
+
+    // -1.3::artist:tag::xxx -> xxx
     match = word.match(/^(-?\d+\.?\d*)(?::|：){2}artist(?::|：)[^:：]+(?::|：){2}(.+)$/);
     if (match) return match[2];
 
-    // -1.3::tag::xxx - 鎻愬彇 xxx锛堝湪瀹屾垚tag鍚庣户缁緭鍏ワ級
+    // -1.3::tag::xxx -> xxx
     match = word.match(/^(-?\d+\.?\d*)(?::|：){2}[^:：]+(?::|：){2}(.+)$/);
     if (match) return match[2];
 
-    // -1.3::tag1,tag2,ta - 澶歵ag鏍煎紡锛屾彁鍙栨渶鍚庝竴涓€楀彿鍚庣殑閮ㄥ垎
+    // -1.3::tag1,tag2,ta -> ta
     match = word.match(/^(-?\d+\.?\d*)(?::|：){2}.*,([^,]*)$/);
     if (match) return match[2].trim();
 
-    // -1.3::artist:xxx - 鎻愬彇 xxx
+    // -1.3::artist:xxx -> xxx
     match = word.match(/^(-?\d+\.?\d*)(?::|：){2}artist(?::|：)(.*)$/);
     if (match) return match[2].replace(/(?::|：)+$/, '');
 
-    // -1.3::xxx - 鎻愬彇 xxx锛堝寘鎷?-1.3::tag: 杩欑涓棿鐘舵€侊級
+    // -1.3::xxx -> xxx（包括尚未输入完的中间态）
     match = word.match(/^(-?\d+\.?\d*)(?::|：){2}(.*)$/);
     if (match) {
-      // 鍘绘帀灏鹃儴鐨勫啋鍙凤紙鐢ㄦ埛姝ｅ湪杈撳叆 ::锛?
+      // 去掉尾部冒号，兼容正在输入 :: 的情况
       return match[2].replace(/(?::|：)+$/, '');
     }
 
-    // artist:xxx - 鎻愬彇 xxx
+    // artist:xxx -> xxx
     match = word.match(/^artist(?::|：)(.*)$/);
     if (match) return match[1];
 
@@ -451,46 +570,51 @@
     if (!activeEditor || !tag) return;
     const sel = window.getSelection();
     if (!sel.rangeCount) return;
-    const range = sel.getRangeAt(0);
-    const node = range.startContainer;
+    const context = getSegmentContext();
+    if (!context) return;
+    const {
+      editor,
+      segmentText: currentSegment,
+      segmentTailText,
+      segmentStartOffset,
+      caretOffset,
+      nextMeaningfulChar,
+    } = context;
 
     let start = 0;
     let isAfterComplete = false;
     let isMultiTagFormat = false;
+    const preservedSuffixMatch = segmentTailText.match(/[\)\]\}]+$/);
+    const preservedSuffix = preservedSuffixMatch ? preservedSuffixMatch[0] : '';
+    const normalizedTail = segmentTailText.slice(0, segmentTailText.length - preservedSuffix.length);
+    const fullSegment = `${currentSegment}${normalizedTail}`;
+    const shouldAppendComma = nextMeaningfulChar !== ',' && nextMeaningfulChar !== '，';
 
-    if (node.nodeType === Node.TEXT_NODE) {
-      const text = node.textContent;
-      const pos = range.startOffset;
-      start = pos;
-      while (start > 0 && text[start - 1] !== ',' && text[start - 1] !== '\n') start--;
-      while (start < pos && text[start] === ' ') start++;
-
-      const currentSegment = text.slice(start, pos);
-
-      // 妫€娴嬫槸鍚﹀湪宸插畬鎴愮殑 tag 鍚庣户缁緭鍏?(e.g., "-1.3::tag::xxx" 鎴?"-1.3::artist:tag::xxx")
-      // 鏀寔璐熸暟鏉冮噸鍜屼腑鑻辨枃鍐掑彿
-      const afterCompleteMatch = currentSegment.match(/^(-?\d+\.?\d*(?::|：){2}(artist(?::|：))?[^:：]+(?::|：){2})/);
-      if (afterCompleteMatch) {
-        // 鐢ㄦ埛鍦ㄥ畬鎴愮殑 tag 鍚庤緭鍏ユ柊鍐呭锛屽彧鏇挎崲鏂拌緭鍏ョ殑閮ㄥ垎
-        start = start + afterCompleteMatch[0].length;
-        isAfterComplete = true;
-      } else {
-        // 妫€娴嬪 tag 鏍煎紡: -1.3::tag1,tag2,ta - 鍙浛鎹㈡渶鍚庝竴涓€楀彿鍚庣殑閮ㄥ垎
-        const multiTagMatch = currentSegment.match(/^(-?\d+\.?\d*(?::|：){2}.*,)/);
-        if (multiTagMatch) {
-          start = start + multiTagMatch[1].length;
-          isMultiTagFormat = true;
-        }
+    const exactCompleteMatch = fullSegment.match(/^(-?\d+\.?\d*(?::|：){2}(artist(?::|：))?[^:：]+(?::|：){1,2})$/);
+    const afterCompleteMatch = fullSegment.match(/^(-?\d+\.?\d*(?::|：){2}(artist(?::|：))?[^:：]+(?::|：){2})(.+)$/);
+    if (exactCompleteMatch) {
+      isAfterComplete = false;
+    } else if (afterCompleteMatch) {
+      start = afterCompleteMatch[1].length;
+      isAfterComplete = true;
+    } else {
+      const multiTagMatch = fullSegment.match(/^(-?\d+\.?\d*(?::|：){2}.*,)/);
+      if (multiTagMatch) {
+        start = multiTagMatch[1].length;
+        isMultiTagFormat = true;
       }
-
-      // 璁剧疆閫夊尯锛氫粠 start 鍒板綋鍓嶅厜鏍囦綅缃?
-      range.setStart(node, start);
-      range.setEnd(node, pos);
-      sel.removeAllRanges();
-      sel.addRange(range);
     }
 
-    // 搴旂敤涓嬪垝绾?绌烘牸杞崲
+    const replacementRange = createRangeFromTextOffsets(
+      editor,
+      segmentStartOffset + start,
+      caretOffset + segmentTailText.length
+    );
+    if (!replacementRange) return;
+    sel.removeAllRanges();
+    sel.addRange(replacementRange);
+
+    // 应用下划线/空格转换
     let tagName = tag.tag;
     if (settings.convertSlashToSpace) {
       tagName = tagName.replace(/_/g, ' ');
@@ -498,29 +622,34 @@
       tagName = tagName.replace(/ /g, '_');
     }
 
-    const weight = tag.weight || 1.0;
-    // 浣跨敤鐢ㄦ埛鍦║I涓€夋嫨鐨?artist 璁剧疆
+    const weight = Number.isFinite(tag.weight) ? tag.weight : 1.0;
+    // 使用当前 UI 中选择的 artist 设置
     const useArtist = tag.category === '1' && tag.useArtistPrefix;
+    const commaSuffix = shouldAppendComma ? ', ' : '';
 
-    // 鏋勫缓杈撳嚭鏍煎紡 - 濮嬬粓鍩轰簬鐢ㄦ埛鍦║I涓殑閫夋嫨锛屾浛鎹㈡暣涓钀?
+    // 构建输出格式，始终基于当前 UI 状态
     let output;
     if (isAfterComplete || isMultiTagFormat) {
-      // 鍦ㄥ凡瀹屾垚 tag 鍚庢垨澶?tag 鏍煎紡涓紝鍙緭鍑?tag 鍚?
-      output = `${tagName},`;
+      // 完整 tag 后继续输入，或多 tag 模式下，只替换最后一段
+      output = `${tagName}${preservedSuffix}${shouldAppendComma ? ',' : ''}`;
     } else if (weight !== 1.0) {
-      // 甯︽潈閲嶆牸寮? -1.3::tag:: 鎴?-1.3::artist:tag::
-      const weightStr = weight >= 0 ? weight.toFixed(1) : weight.toFixed(1);
-      output = useArtist ? `${weightStr}::artist:${tagName}::, ` : `${weightStr}::${tagName}::, `;
+      // 带权重格式：-1.3::tag:: / -1.3::artist:tag::
+      const weightStr = weight.toFixed(1);
+      output = useArtist
+        ? `${weightStr}::artist:${tagName}::${preservedSuffix}${commaSuffix}`
+        : `${weightStr}::${tagName}::${preservedSuffix}${commaSuffix}`;
     } else {
-      // 鏃犳潈閲嶆牸寮? tag 鎴?artist:tag
-      output = useArtist ? `artist:${tagName}, ` : `${tagName}, `;
+      // 无权重格式：tag / artist:tag
+      output = useArtist
+        ? `artist:${tagName}${preservedSuffix}${commaSuffix}`
+        : `${tagName}${preservedSuffix}${commaSuffix}`;
     }
 
     document.execCommand('insertText', false, output);
     hideAutocomplete();
   }
 
-  // 闃叉姈
+  // 防抖
   function debounce(fn, delay) {
     let t;
     return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), delay); };
@@ -546,7 +675,7 @@
   function init() {
     console.log('[NAI-AC] 扩展已加载');
 
-    // 鍔犺浇淇濆瓨鐨勮缃?
+    // 加载保存的设置
     try {
       const saved = localStorage.getItem('nai-ac-settings');
       if (saved) Object.assign(settings, JSON.parse(saved));
@@ -555,13 +684,13 @@
     syncThemeFromStorage();
     loadTags();
 
-    // 鐩戝惉杈撳叆浜嬩欢
+    // 监听输入事件
     document.addEventListener('input', e => {
       const editor = e.target.closest('.ProseMirror');
       if (editor) { activeEditor = editor; handleInput(editor); }
     }, true);
 
-    // 鐩戝惉鍏夋爣绉诲姩锛堢偣鍑绘垨閿洏绉诲姩鍏夋爣鏃朵篃瑙﹀彂琛ュ叏妫€娴嬶級
+    // 监听光标移动，点选或键盘移动都重新判断补全
     document.addEventListener('selectionchange', () => {
       const sel = window.getSelection();
       if (!sel.rangeCount) return;

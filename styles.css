@@ -73,6 +73,66 @@ html[data-nai-theme="rose"] {
   --md-sys-color-error: #b3261e;
 }
 
+html[data-nai-theme="ember"] {
+  --md-sys-color-surface: #181413;
+  --md-sys-color-surface-container: #231d1b;
+  --md-sys-color-surface-container-high: #2c2421;
+  --md-sys-color-on-surface: #f4e7e1;
+  --md-sys-color-on-surface-variant: #c8b5ad;
+  --md-sys-color-outline: #8d786f;
+  --md-sys-color-outline-variant: #5c4b44;
+  --md-sys-color-primary: #ffb68d;
+  --md-sys-color-on-primary: #3a1d10;
+  --md-sys-color-secondary: #e4b9a1;
+  --md-sys-color-tertiary: #f2c98d;
+  --md-sys-color-error: #ffb4ab;
+
+  --nai-category-general: #8dc2ff;
+  --nai-category-artist: #ffae88;
+  --nai-category-copyright: #b7a7ff;
+  --nai-category-character: #7cd9a6;
+}
+
+html[data-nai-theme="midnight"] {
+  --md-sys-color-surface: #0f1721;
+  --md-sys-color-surface-container: #16202c;
+  --md-sys-color-surface-container-high: #1c2937;
+  --md-sys-color-on-surface: #e7eef8;
+  --md-sys-color-on-surface-variant: #afc0d7;
+  --md-sys-color-outline: #73859d;
+  --md-sys-color-outline-variant: #33465b;
+  --md-sys-color-primary: #84b9ff;
+  --md-sys-color-on-primary: #0f2745;
+  --md-sys-color-secondary: #b2c6e6;
+  --md-sys-color-tertiary: #8cd5f1;
+  --md-sys-color-error: #ffb4ab;
+
+  --nai-category-general: #8fc0ff;
+  --nai-category-artist: #ff9e8f;
+  --nai-category-copyright: #c0a8ff;
+  --nai-category-character: #79d8b2;
+}
+
+html[data-nai-theme="moss"] {
+  --md-sys-color-surface: #121814;
+  --md-sys-color-surface-container: #19221c;
+  --md-sys-color-surface-container-high: #223028;
+  --md-sys-color-on-surface: #e6f0e7;
+  --md-sys-color-on-surface-variant: #b3c6b5;
+  --md-sys-color-outline: #728676;
+  --md-sys-color-outline-variant: #34463a;
+  --md-sys-color-primary: #8fcb89;
+  --md-sys-color-on-primary: #15321a;
+  --md-sys-color-secondary: #b7d3b1;
+  --md-sys-color-tertiary: #8ed9bc;
+  --md-sys-color-error: #ffb4ab;
+
+  --nai-category-general: #85bdff;
+  --nai-category-artist: #ffb07c;
+  --nai-category-copyright: #b8b1ff;
+  --nai-category-character: #89d59a;
+}
+
 /* Autocomplete Container */
 .nai-autocomplete-container {
   position: absolute;
@@ -868,6 +928,39 @@ html.nai-image-pick-mode * {
   --nai-md3-accent-soft: rgba(200, 93, 51, 0.12);
   --nai-md3-accent-strong: rgba(200, 93, 51, 0.2);
   --nai-md3-success: #2d7d46;
+  --nai-md3-panel-border: rgba(255, 255, 255, 0.96);
+  --nai-md3-panel-inner-border: rgba(255, 255, 255, 0.5);
+  --nai-md3-header-bg: rgba(255, 255, 255, 0.5);
+  --nai-md3-header-border: rgba(255, 255, 255, 0.45);
+  --nai-md3-close-bg: rgba(255, 255, 255, 0.72);
+  --nai-md3-close-hover-bg: rgba(255, 255, 255, 0.95);
+  --nai-md3-tab-bg: rgba(255, 255, 255, 0.42);
+  --nai-md3-chip-bg: rgba(255, 255, 255, 0.74);
+  --nai-md3-chip-shadow: 0 6px 16px rgba(156, 124, 100, 0.08);
+  --nai-md3-chip-hover-shadow: 0 10px 20px rgba(156, 124, 100, 0.12);
+  --nai-md3-kbd-bg: rgba(255, 255, 255, 0.66);
+  --nai-md3-kbd-border: rgba(255, 255, 255, 0.76);
+  --nai-md3-preview-border: rgba(255, 255, 255, 0.7);
+  --nai-md3-preview-bg-a: rgba(255, 255, 255, 0.84);
+  --nai-md3-preview-bg-b: rgba(245, 239, 230, 0.92);
+  --nai-md3-status-bg: rgba(255, 255, 255, 0.54);
+  --nai-md3-error-bg: rgba(255, 237, 235, 0.78);
+  --nai-md3-input-bg: rgba(255, 255, 255, 0.74);
+  --nai-md3-input-hover-bg: rgba(255, 255, 255, 0.9);
+  --nai-md3-input-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  --nai-md3-section-border: rgba(255, 255, 255, 0.68);
+  --nai-md3-section-bg: rgba(255, 255, 255, 0.38);
+  --nai-md3-section-appearance-top: rgba(255, 255, 255, 0.58);
+  --nai-md3-section-appearance-bottom: rgba(255, 255, 255, 0.34);
+  --nai-md3-switch-bg: rgba(255, 255, 255, 0.42);
+  --nai-md3-switch-track: rgba(255, 255, 255, 0.72);
+  --nai-md3-switch-thumb: #fff;
+  --nai-md3-history-empty-bg: rgba(255, 255, 255, 0.32);
+  --nai-md3-history-item-border: rgba(255, 255, 255, 0.72);
+  --nai-md3-history-item-bg: rgba(255, 255, 255, 0.62);
+  --nai-md3-history-hover-border: color-mix(in srgb, var(--md-sys-color-primary) 22%, white);
+  --nai-md3-panel-sheen: rgba(255, 255, 255, 0.34);
+  --nai-md3-resize-shadow: 0 8px 18px rgba(112, 84, 61, 0.18);
   --nai-md3-radius-xl: 28px;
   --nai-md3-radius-lg: 22px;
   --nai-md3-radius-md: 18px;
@@ -949,6 +1042,174 @@ html.nai-image-pick-mode * {
   --nai-md3-accent-strong: rgba(188, 91, 114, 0.2);
 }
 
+.nai-md3-root[data-theme="ember"] {
+  --md-sys-color-surface: #181413;
+  --md-sys-color-surface-container: #231d1b;
+  --md-sys-color-surface-container-high: #2c2421;
+  --md-sys-color-surface-container-highest: #332926;
+  --md-sys-color-on-surface: #f4e7e1;
+  --md-sys-color-on-surface-variant: #c8b5ad;
+  --md-sys-color-outline: #8d786f;
+  --md-sys-color-outline-variant: #5c4b44;
+  --md-sys-color-primary: #ffb68d;
+  --md-sys-color-on-primary: #3a1d10;
+  --md-sys-color-secondary: #e4b9a1;
+  --md-sys-color-tertiary: #f2c98d;
+  --nai-md3-panel-shadow: 0 24px 56px rgba(9, 5, 3, 0.44), 0 8px 20px rgba(0, 0, 0, 0.28);
+  --nai-md3-fab-shadow: 0 18px 34px rgba(255, 151, 93, 0.22), 0 6px 16px rgba(0, 0, 0, 0.32);
+  --nai-md3-soft-shadow: 0 12px 28px rgba(0, 0, 0, 0.24);
+  --nai-md3-panel-glow: rgba(255, 158, 96, 0.14);
+  --nai-md3-panel-grad-a: rgba(39, 31, 28, 0.95);
+  --nai-md3-panel-grad-b: rgba(27, 22, 20, 0.94);
+  --nai-md3-accent-soft: rgba(255, 182, 141, 0.16);
+  --nai-md3-accent-strong: rgba(255, 182, 141, 0.28);
+  --nai-md3-panel-border: rgba(255, 214, 186, 0.18);
+  --nai-md3-panel-inner-border: rgba(255, 228, 208, 0.08);
+  --nai-md3-header-bg: rgba(255, 255, 255, 0.04);
+  --nai-md3-header-border: rgba(255, 232, 214, 0.08);
+  --nai-md3-close-bg: rgba(255, 255, 255, 0.06);
+  --nai-md3-close-hover-bg: rgba(255, 255, 255, 0.12);
+  --nai-md3-tab-bg: rgba(255, 255, 255, 0.04);
+  --nai-md3-chip-bg: rgba(255, 255, 255, 0.06);
+  --nai-md3-chip-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+  --nai-md3-chip-hover-shadow: 0 12px 22px rgba(0, 0, 0, 0.24);
+  --nai-md3-kbd-bg: rgba(255, 255, 255, 0.06);
+  --nai-md3-kbd-border: rgba(255, 232, 214, 0.12);
+  --nai-md3-preview-border: rgba(255, 232, 214, 0.12);
+  --nai-md3-preview-bg-a: rgba(41, 34, 31, 0.94);
+  --nai-md3-preview-bg-b: rgba(27, 23, 20, 0.96);
+  --nai-md3-status-bg: rgba(255, 255, 255, 0.05);
+  --nai-md3-error-bg: rgba(97, 31, 24, 0.56);
+  --nai-md3-input-bg: rgba(255, 255, 255, 0.05);
+  --nai-md3-input-hover-bg: rgba(255, 255, 255, 0.08);
+  --nai-md3-input-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --nai-md3-section-border: rgba(255, 232, 214, 0.1);
+  --nai-md3-section-bg: rgba(255, 255, 255, 0.035);
+  --nai-md3-section-appearance-top: rgba(255, 255, 255, 0.05);
+  --nai-md3-section-appearance-bottom: rgba(255, 255, 255, 0.02);
+  --nai-md3-switch-bg: rgba(255, 255, 255, 0.04);
+  --nai-md3-switch-track: rgba(255, 255, 255, 0.08);
+  --nai-md3-switch-thumb: #fff0e8;
+  --nai-md3-history-empty-bg: rgba(255, 255, 255, 0.03);
+  --nai-md3-history-item-border: rgba(255, 232, 214, 0.1);
+  --nai-md3-history-item-bg: rgba(255, 255, 255, 0.045);
+  --nai-md3-history-hover-border: color-mix(in srgb, var(--md-sys-color-primary) 24%, rgba(255, 232, 214, 0.12));
+  --nai-md3-panel-sheen: rgba(255, 193, 156, 0.08);
+  --nai-md3-resize-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+.nai-md3-root[data-theme="midnight"] {
+  --md-sys-color-surface: #0f1721;
+  --md-sys-color-surface-container: #16202c;
+  --md-sys-color-surface-container-high: #1c2937;
+  --md-sys-color-surface-container-highest: #233345;
+  --md-sys-color-on-surface: #e7eef8;
+  --md-sys-color-on-surface-variant: #afc0d7;
+  --md-sys-color-outline: #73859d;
+  --md-sys-color-outline-variant: #33465b;
+  --md-sys-color-primary: #84b9ff;
+  --md-sys-color-on-primary: #0f2745;
+  --md-sys-color-secondary: #b2c6e6;
+  --md-sys-color-tertiary: #8cd5f1;
+  --nai-md3-panel-shadow: 0 24px 56px rgba(3, 9, 18, 0.5), 0 8px 20px rgba(0, 0, 0, 0.28);
+  --nai-md3-fab-shadow: 0 18px 34px rgba(90, 154, 255, 0.24), 0 6px 18px rgba(0, 0, 0, 0.32);
+  --nai-md3-soft-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+  --nai-md3-panel-glow: rgba(98, 167, 255, 0.16);
+  --nai-md3-panel-grad-a: rgba(24, 34, 46, 0.96);
+  --nai-md3-panel-grad-b: rgba(15, 23, 33, 0.94);
+  --nai-md3-accent-soft: rgba(132, 185, 255, 0.18);
+  --nai-md3-accent-strong: rgba(132, 185, 255, 0.28);
+  --nai-md3-panel-border: rgba(194, 222, 255, 0.16);
+  --nai-md3-panel-inner-border: rgba(214, 234, 255, 0.08);
+  --nai-md3-header-bg: rgba(255, 255, 255, 0.035);
+  --nai-md3-header-border: rgba(214, 234, 255, 0.08);
+  --nai-md3-close-bg: rgba(255, 255, 255, 0.06);
+  --nai-md3-close-hover-bg: rgba(255, 255, 255, 0.12);
+  --nai-md3-tab-bg: rgba(255, 255, 255, 0.04);
+  --nai-md3-chip-bg: rgba(255, 255, 255, 0.06);
+  --nai-md3-chip-shadow: 0 8px 18px rgba(0, 0, 0, 0.16);
+  --nai-md3-chip-hover-shadow: 0 12px 22px rgba(0, 0, 0, 0.24);
+  --nai-md3-kbd-bg: rgba(255, 255, 255, 0.05);
+  --nai-md3-kbd-border: rgba(214, 234, 255, 0.12);
+  --nai-md3-preview-border: rgba(214, 234, 255, 0.12);
+  --nai-md3-preview-bg-a: rgba(27, 39, 53, 0.95);
+  --nai-md3-preview-bg-b: rgba(15, 23, 33, 0.97);
+  --nai-md3-status-bg: rgba(255, 255, 255, 0.05);
+  --nai-md3-error-bg: rgba(96, 33, 42, 0.58);
+  --nai-md3-input-bg: rgba(255, 255, 255, 0.05);
+  --nai-md3-input-hover-bg: rgba(255, 255, 255, 0.08);
+  --nai-md3-input-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --nai-md3-section-border: rgba(214, 234, 255, 0.1);
+  --nai-md3-section-bg: rgba(255, 255, 255, 0.03);
+  --nai-md3-section-appearance-top: rgba(255, 255, 255, 0.05);
+  --nai-md3-section-appearance-bottom: rgba(255, 255, 255, 0.018);
+  --nai-md3-switch-bg: rgba(255, 255, 255, 0.04);
+  --nai-md3-switch-track: rgba(255, 255, 255, 0.08);
+  --nai-md3-switch-thumb: #f5f9ff;
+  --nai-md3-history-empty-bg: rgba(255, 255, 255, 0.025);
+  --nai-md3-history-item-border: rgba(214, 234, 255, 0.1);
+  --nai-md3-history-item-bg: rgba(255, 255, 255, 0.04);
+  --nai-md3-history-hover-border: color-mix(in srgb, var(--md-sys-color-primary) 24%, rgba(214, 234, 255, 0.12));
+  --nai-md3-panel-sheen: rgba(148, 198, 255, 0.08);
+  --nai-md3-resize-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
+.nai-md3-root[data-theme="moss"] {
+  --md-sys-color-surface: #121814;
+  --md-sys-color-surface-container: #19221c;
+  --md-sys-color-surface-container-high: #223028;
+  --md-sys-color-surface-container-highest: #2b3b31;
+  --md-sys-color-on-surface: #e6f0e7;
+  --md-sys-color-on-surface-variant: #b3c6b5;
+  --md-sys-color-outline: #728676;
+  --md-sys-color-outline-variant: #34463a;
+  --md-sys-color-primary: #8fcb89;
+  --md-sys-color-on-primary: #15321a;
+  --md-sys-color-secondary: #b7d3b1;
+  --md-sys-color-tertiary: #8ed9bc;
+  --nai-md3-panel-shadow: 0 24px 56px rgba(5, 10, 7, 0.48), 0 8px 20px rgba(0, 0, 0, 0.28);
+  --nai-md3-fab-shadow: 0 18px 34px rgba(112, 184, 111, 0.24), 0 6px 18px rgba(0, 0, 0, 0.3);
+  --nai-md3-soft-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+  --nai-md3-panel-glow: rgba(143, 203, 137, 0.14);
+  --nai-md3-panel-grad-a: rgba(28, 39, 32, 0.96);
+  --nai-md3-panel-grad-b: rgba(18, 24, 20, 0.94);
+  --nai-md3-accent-soft: rgba(143, 203, 137, 0.16);
+  --nai-md3-accent-strong: rgba(143, 203, 137, 0.28);
+  --nai-md3-panel-border: rgba(208, 236, 210, 0.14);
+  --nai-md3-panel-inner-border: rgba(218, 241, 220, 0.08);
+  --nai-md3-header-bg: rgba(255, 255, 255, 0.035);
+  --nai-md3-header-border: rgba(218, 241, 220, 0.08);
+  --nai-md3-close-bg: rgba(255, 255, 255, 0.06);
+  --nai-md3-close-hover-bg: rgba(255, 255, 255, 0.12);
+  --nai-md3-tab-bg: rgba(255, 255, 255, 0.04);
+  --nai-md3-chip-bg: rgba(255, 255, 255, 0.055);
+  --nai-md3-chip-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+  --nai-md3-chip-hover-shadow: 0 12px 22px rgba(0, 0, 0, 0.22);
+  --nai-md3-kbd-bg: rgba(255, 255, 255, 0.05);
+  --nai-md3-kbd-border: rgba(218, 241, 220, 0.12);
+  --nai-md3-preview-border: rgba(218, 241, 220, 0.12);
+  --nai-md3-preview-bg-a: rgba(31, 44, 35, 0.95);
+  --nai-md3-preview-bg-b: rgba(18, 24, 20, 0.97);
+  --nai-md3-status-bg: rgba(255, 255, 255, 0.045);
+  --nai-md3-error-bg: rgba(94, 31, 28, 0.56);
+  --nai-md3-input-bg: rgba(255, 255, 255, 0.05);
+  --nai-md3-input-hover-bg: rgba(255, 255, 255, 0.08);
+  --nai-md3-input-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --nai-md3-section-border: rgba(218, 241, 220, 0.1);
+  --nai-md3-section-bg: rgba(255, 255, 255, 0.03);
+  --nai-md3-section-appearance-top: rgba(255, 255, 255, 0.05);
+  --nai-md3-section-appearance-bottom: rgba(255, 255, 255, 0.018);
+  --nai-md3-switch-bg: rgba(255, 255, 255, 0.04);
+  --nai-md3-switch-track: rgba(255, 255, 255, 0.08);
+  --nai-md3-switch-thumb: #f2fff3;
+  --nai-md3-history-empty-bg: rgba(255, 255, 255, 0.025);
+  --nai-md3-history-item-border: rgba(218, 241, 220, 0.1);
+  --nai-md3-history-item-bg: rgba(255, 255, 255, 0.04);
+  --nai-md3-history-hover-border: color-mix(in srgb, var(--md-sys-color-primary) 24%, rgba(218, 241, 220, 0.12));
+  --nai-md3-panel-sheen: rgba(167, 233, 172, 0.08);
+  --nai-md3-resize-shadow: 0 10px 22px rgba(0, 0, 0, 0.28);
+}
+
 .nai-md3-root[data-page="settings"] .nai-md3-panel::after {
   opacity: 0.88;
 }
@@ -992,7 +1253,7 @@ html.nai-image-pick-mode * {
   display: flex;
   flex-direction: column;
   border-radius: var(--nai-md3-radius-xl);
-  border: 1px solid rgba(255, 255, 255, 0.96);
+  border: 1px solid var(--nai-md3-panel-border);
   background:
     radial-gradient(circle at top left, var(--nai-md3-panel-glow), transparent 38%),
     linear-gradient(180deg, var(--nai-md3-panel-grad-a), var(--nai-md3-panel-grad-b));
@@ -1015,14 +1276,14 @@ html.nai-image-pick-mode * {
 }
 
 .nai-md3-panel::before {
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 1px solid var(--nai-md3-panel-inner-border);
   opacity: 0.85;
 }
 
 .nai-md3-panel::after {
   inset: auto 18px 18px 18px;
   height: 96px;
-  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.34));
+  background: linear-gradient(180deg, transparent, var(--nai-md3-panel-sheen));
   filter: blur(16px);
   opacity: 0.64;
 }
@@ -1045,8 +1306,8 @@ html.nai-image-pick-mode * {
   cursor: move;
   user-select: none;
   touch-action: none;
-  background: rgba(255, 255, 255, 0.5);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  background: var(--nai-md3-header-bg);
+  box-shadow: inset 0 0 0 1px var(--nai-md3-header-border);
   backdrop-filter: blur(10px);
 }
 
@@ -1061,7 +1322,7 @@ html.nai-image-pick-mode * {
   height: 38px;
   border: none;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--nai-md3-close-bg);
   color: var(--md-sys-color-on-surface);
   cursor: pointer;
   font-size: 20px;
@@ -1072,7 +1333,7 @@ html.nai-image-pick-mode * {
 
 .nai-md3-close:hover {
   transform: rotate(90deg) scale(1.02);
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--nai-md3-close-hover-bg);
 }
 
 .nai-md3-tabs {
@@ -1082,8 +1343,8 @@ html.nai-image-pick-mode * {
   margin-top: 12px;
   padding: 4px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.42);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+  background: var(--nai-md3-tab-bg);
+  box-shadow: inset 0 0 0 1px var(--nai-md3-header-border);
 }
 
 .nai-md3-body {
@@ -1100,14 +1361,14 @@ html.nai-image-pick-mode * {
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: 999px;
   padding: 11px 14px;
-  background: rgba(255, 255, 255, 0.74);
+  background: var(--nai-md3-chip-bg);
   color: var(--md-sys-color-on-surface);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.01em;
   cursor: pointer;
   transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease, border-color 160ms ease, color 160ms ease;
-  box-shadow: 0 6px 16px rgba(156, 124, 100, 0.08);
+  box-shadow: var(--nai-md3-chip-shadow);
 }
 
 .nai-md3-tabs button:hover,
@@ -1116,7 +1377,7 @@ html.nai-image-pick-mode * {
 .nai-history-actions button:hover {
   transform: translateY(-1px);
   border-color: color-mix(in srgb, var(--md-sys-color-primary) 28%, var(--md-sys-color-outline-variant));
-  box-shadow: 0 10px 20px rgba(156, 124, 100, 0.12);
+  box-shadow: var(--nai-md3-chip-hover-shadow);
 }
 
 .nai-md3-tabs button.active,
@@ -1158,9 +1419,9 @@ html.nai-image-pick-mode * {
 .nai-md3-hint kbd {
   min-width: 28px;
   padding: 4px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.76);
+  border: 1px solid var(--nai-md3-kbd-border);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.66);
+  background: var(--nai-md3-kbd-bg);
   box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.03);
   text-align: center;
 }
@@ -1181,8 +1442,8 @@ html.nai-image-pick-mode * {
   max-height: 240px;
   margin-top: 14px;
   border-radius: var(--nai-md3-radius-lg);
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(245, 239, 230, 0.92));
+  border: 1px solid var(--nai-md3-preview-border);
+  background: linear-gradient(180deg, var(--nai-md3-preview-bg-a), var(--nai-md3-preview-bg-b));
   object-fit: contain;
   box-shadow: var(--nai-md3-soft-shadow);
 }
@@ -1200,7 +1461,7 @@ html.nai-image-pick-mode * {
   margin-top: 12px;
   padding: 10px 12px;
   border-radius: var(--nai-md3-radius-sm);
-  background: rgba(255, 255, 255, 0.54);
+  background: var(--nai-md3-status-bg);
   font-size: 12px;
   line-height: 1.45;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45);
@@ -1208,7 +1469,7 @@ html.nai-image-pick-mode * {
 
 .nai-md3-status.is-error {
   color: var(--md-sys-color-error);
-  background: rgba(255, 237, 235, 0.78);
+  background: var(--nai-md3-error-bg);
 }
 
 .nai-md3-label {
@@ -1228,13 +1489,13 @@ html.nai-image-pick-mode * {
   min-width: 0;
   border: 1px solid var(--md-sys-color-outline-variant);
   border-radius: var(--nai-md3-radius-md);
-  background: rgba(255, 255, 255, 0.74);
+  background: var(--nai-md3-input-bg);
   color: var(--md-sys-color-on-surface);
   padding: 12px 14px;
   font-size: 13px;
   line-height: 1.55;
   resize: none;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  box-shadow: var(--nai-md3-input-inner-shadow);
   transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease, transform 160ms ease;
 }
 
@@ -1245,7 +1506,7 @@ html.nai-image-pick-mode * {
 
 .nai-md3-input:hover,
 .nai-md3-result:hover {
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--nai-md3-input-hover-bg);
 }
 
 .nai-md3-input:focus,
@@ -1298,15 +1559,15 @@ html.nai-image-pick-mode * {
   margin-top: 12px;
   padding: 14px;
   min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.68);
+  border: 1px solid var(--nai-md3-section-border);
   border-radius: var(--nai-md3-radius-lg);
-  background: rgba(255, 255, 255, 0.38);
+  background: var(--nai-md3-section-bg);
   box-shadow: var(--nai-md3-soft-shadow);
 }
 
 .nai-md3-settings-appearance {
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.34)),
+    linear-gradient(180deg, var(--nai-md3-section-appearance-top), var(--nai-md3-section-appearance-bottom)),
     radial-gradient(circle at top right, var(--nai-md3-accent-soft), transparent 48%);
 }
 
@@ -1337,10 +1598,10 @@ html.nai-image-pick-mode * {
   margin-top: 12px;
   padding: 12px 14px;
   border-radius: var(--nai-md3-radius-md);
-  background: rgba(255, 255, 255, 0.42);
+  background: var(--nai-md3-switch-bg);
   color: var(--md-sys-color-on-surface-variant);
   line-height: 1.45;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+  box-shadow: inset 0 0 0 1px var(--nai-md3-header-border);
 }
 
 .nai-md3-switch span {
@@ -1356,7 +1617,7 @@ html.nai-image-pick-mode * {
   flex: 0 0 auto;
   border: 1px solid var(--md-sys-color-outline);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
+  background: var(--nai-md3-switch-track);
   cursor: pointer;
   transition: background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
 }
@@ -1369,7 +1630,7 @@ html.nai-image-pick-mode * {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--nai-md3-switch-thumb);
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.16);
   transition: transform 160ms ease, background-color 160ms ease;
 }
@@ -1396,22 +1657,22 @@ html.nai-image-pick-mode * {
   padding: 16px;
   border: 1px dashed var(--md-sys-color-outline);
   border-radius: var(--nai-md3-radius-md);
-  background: rgba(255, 255, 255, 0.32);
+  background: var(--nai-md3-history-empty-bg);
   text-align: center;
 }
 
 .nai-history-item {
-  border: 1px solid rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--nai-md3-history-item-border);
   border-radius: var(--nai-md3-radius-lg);
   padding: 12px;
-  background: rgba(255, 255, 255, 0.62);
+  background: var(--nai-md3-history-item-bg);
   box-shadow: var(--nai-md3-soft-shadow);
   transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
 }
 
 .nai-history-item:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--md-sys-color-primary) 22%, white);
+  border-color: var(--nai-md3-history-hover-border);
   box-shadow: 0 16px 28px rgba(146, 108, 86, 0.14);
 }
 
@@ -1442,7 +1703,7 @@ html.nai-image-pick-mode * {
 
 .nai-history-actions button {
   padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.74);
+  background: var(--nai-md3-chip-bg);
 }
 
 .nai-md3-resize-handle {
@@ -1456,7 +1717,7 @@ html.nai-image-pick-mode * {
   cursor: nwse-resize;
   touch-action: none;
   opacity: 0.86;
-  box-shadow: 0 8px 18px rgba(112, 84, 61, 0.18);
+  box-shadow: var(--nai-md3-resize-shadow);
   background:
     linear-gradient(135deg,
       transparent 0 38%,
