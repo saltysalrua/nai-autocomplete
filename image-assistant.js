@@ -48,6 +48,7 @@
     fallbackEndpoint: '\u5907\u7528 API Endpoint',
     fallbackModel: '\u5907\u7528\u6a21\u578b',
     fallbackApiKey: '\u5907\u7528 API Key\uff08\u7559\u7a7a\u5219\u590d\u7528\u4e3b Key\uff09',
+    sendImageAsDataUrl: '\u53d1\u9001\u56fe\u7247\u5185\u5bb9\uff08\u5173\u95ed\u5219\u53d1\u9001\u539f\u59cb URL\uff09',
     showBall: '\u663e\u793a\u60ac\u6d6e\u7403\uff08\u5173\u95ed\u540e\u4ec5\u53ef\u901a\u8fc7\u5feb\u6377\u952e\u6216\u6269\u5c55\u5f39\u7a97\u6253\u5f00\uff09',
     saveSettings: '\u4fdd\u5b58\u8bbe\u7f6e',
     statusReady: '\u5c31\u7eea\u3002\u53ef\u4f7f\u7528 Alt + Shift + \u70b9\u51fb\u56fe\u7247 \u5feb\u901f\u53cd\u63a8\u3002',
@@ -97,6 +98,7 @@
     fallbackEndpoint: 'https://api.x.ai/v1/responses',
     fallbackModel: 'grok-4-fast-reasoning',
     fallbackApiKey: '',
+    sendImageAsDataUrl: true,
     showFloatingBall: true,
   };
 
@@ -650,8 +652,11 @@
     }
 
     const content = [{ type: 'text', text: userPrompt }];
-    if (state.selectedImage?.dataUrl) {
-      content.push({ type: 'image_url', image_url: { url: state.selectedImage.dataUrl } });
+    const imagePayload = state.settings.sendImageAsDataUrl
+      ? state.selectedImage?.dataUrl || state.selectedImage?.sourceUrl
+      : state.selectedImage?.sourceUrl || state.selectedImage?.dataUrl;
+    if (imagePayload) {
+      content.push({ type: 'image_url', image_url: { url: imagePayload } });
     }
 
     messages.push({ role: 'user', content });
@@ -1244,6 +1249,7 @@
     ui.settings.fallbackEndpoint.value = state.settings.fallbackEndpoint;
     ui.settings.fallbackModel.value = state.settings.fallbackModel;
     ui.settings.fallbackApiKey.value = state.settings.fallbackApiKey;
+    ui.settings.sendImageAsDataUrl.checked = Boolean(state.settings.sendImageAsDataUrl);
     ui.settings.defaultCodeFence.checked = Boolean(state.settings.defaultCodeFence);
     ui.settings.showFloatingBall.checked = Boolean(state.settings.showFloatingBall);
     updateFallbackSettingsVisibility();
@@ -1271,6 +1277,7 @@
       fallbackEndpoint: ui.settings.fallbackEndpoint.value.trim() || '',
       fallbackModel: ui.settings.fallbackModel.value.trim() || '',
       fallbackApiKey: ui.settings.fallbackApiKey.value.trim(),
+      sendImageAsDataUrl: Boolean(ui.settings.sendImageAsDataUrl.checked),
       showFloatingBall: Boolean(ui.settings.showFloatingBall.checked),
     };
   }
@@ -1400,6 +1407,7 @@
               <div><label class="nai-md3-label">${T.fallbackApiKey}</label><input class="nai-md3-input" data-field="fallbackApiKey" type="password" /></div>
             </div>
           </div>
+          <label class="nai-md3-switch"><input data-field="sendImageAsDataUrl" type="checkbox" /><span>${T.sendImageAsDataUrl}</span></label>
           <label class="nai-md3-switch"><input data-field="defaultCodeFence" type="checkbox" /><span>${T.defaultCodeFence}</span></label>
           <label class="nai-md3-switch"><input data-field="showFloatingBall" type="checkbox" /><span>${T.showBall}</span></label>
           <div class="nai-md3-actions"><button type="button" data-action="test-connection">${T.testConnection}</button><button type="button" class="nai-md3-primary" data-action="save-settings">${T.saveSettings}</button></div>
@@ -1448,6 +1456,7 @@
     ui.settings.fallbackModelList = root.querySelector('#nai-fallback-model-list');
     ui.settings.fallbackApiKey = root.querySelector('[data-field="fallbackApiKey"]');
     ui.settings.fallbackSection = root.querySelector('[data-fallback-section]');
+    ui.settings.sendImageAsDataUrl = root.querySelector('[data-field="sendImageAsDataUrl"]');
     ui.settings.defaultCodeFence = root.querySelector('[data-field="defaultCodeFence"]');
     ui.settings.showFloatingBall = root.querySelector('[data-field="showFloatingBall"]');
 

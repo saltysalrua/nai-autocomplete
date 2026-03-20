@@ -75,6 +75,117 @@ function extractAssistantText(data) {
   return '';
 }
 
+function extractStreamingText(data) {
+  const chunks = [];
+
+  const chatDelta = data?.choices?.[0]?.delta?.content;
+  if (typeof chatDelta === 'string' && chatDelta) {
+    chunks.push(chatDelta);
+  } else if (Array.isArray(chatDelta)) {
+    const text = extractTextParts(chatDelta).join('');
+    if (text) chunks.push(text);
+  }
+
+  if (typeof data?.delta === 'string' && data.delta) {
+    chunks.push(data.delta);
+  }
+  if (typeof data?.delta?.text === 'string' && data.delta.text) {
+    chunks.push(data.delta.text);
+  }
+  if (typeof data?.text === 'string' && data.text) {
+    chunks.push(data.text);
+  }
+  if (typeof data?.output_text === 'string' && data.output_text) {
+    chunks.push(data.output_text);
+  }
+
+  return chunks.join('');
+}
+
+function parseJsonSafely(text) {
+  if (typeof text !== 'string') return null;
+  try {
+    return JSON.parse(text);
+  } catch (error) {
+    return null;
+  }
+}
+
+function parseEventStream(rawText) {
+  const chunks = [];
+  let finalData = null;
+
+  const blocks = String(rawText || '').split(/\r?\n\r?\n+/);
+  for (const block of blocks) {
+    const dataLines = block
+      .split(/\r?\n/)
+      .filter((line) => line.startsWith('data:'))
+      .map((line) => line.slice(5).trimStart());
+
+    if (!dataLines.length) continue;
+
+    const payloadText = dataLines.join('\n').trim();
+    if (!payloadText || payloadText === '[DONE]') continue;
+
+    const payload = parseJsonSafely(payloadText);
+    if (!payload) continue;
+
+    if (payload?.type === 'response.completed' && payload.response) {
+      finalData = payload.response;
+    } else if (payload?.type === 'message_stop' && payload.message) {
+      finalData = payload.message;
+    } else {
+      finalData = payload;
+    }
+
+    const deltaText = extractStreamingText(payload);
+    if (deltaText) {
+      chunks.push(deltaText);
+    }
+  }
+
+  const text = chunks.join('').trim() || extractAssistantText(finalData);
+  return {
+    data: finalData || { stream: rawText },
+    text,
+  };
+}
+
+function extractErrorMessage(data, fallbackMessage) {
+  if (!data) return fallbackMessage;
+  if (typeof data === 'string' && data.trim()) return data.trim();
+  return data?.error?.message || data?.message || data?.error || fallbackMessage;
+}
+
+function buildFetchFailureMessage(url, error) {
+  let hostText = url;
+  let extraHints = [];
+
+  try {
+    const parsed = new URL(url);
+    hostText = `${parsed.protocol}//${parsed.host}`;
+
+    if (parsed.protocol === 'http:') {
+      extraHints.push('Endpoint \u4f7f\u7528\u4e86 HTTP');
+    }
+
+    if (/^(localhost|127\.0\.0\.1|0\.0\.0\.0)$/i.test(parsed.hostname)) {
+      extraHints.push('Endpoint \u662f\u672c\u673a\u670d\u52a1');
+    }
+
+    if (/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(parsed.hostname)) {
+      extraHints.push('Endpoint \u662f\u5185\u7f51\u5730\u5740');
+    }
+  } catch (parseError) {
+    // keep original url
+  }
+
+  const detail = String(error instanceof Error ? error.message : error || '').trim() || 'Failed to fetch';
+  const hintText = extraHints.length ? ` \u53ef\u80fd\u70b9\uff1a${extraHints.join('\uff0c')}\u3002` : '';
+
+  return `\u672a\u62ff\u5230 HTTP \u54cd\u5e94\uff08${hostText}\uff09\uff0c\u5c5e\u4e8e\u7f51\u7edc\u5c42 failed to fetch\u3002\u8fd9\u901a\u5e38\u4e0d\u662f\u6a21\u578b\u8fd4\u56de\u7a7a\u6587\u672c\uff0c\u800c\u662f Endpoint \u6839\u672c\u6ca1\u6709\u6210\u529f\u8fd4\u56de HTTP \u54cd\u5e94\u3002\u8bf7\u68c0\u67e5 Endpoint \u3001\u7aef\u53e3\u3001\u534f\u8bae\u3001\u8bc1\u4e66\u6216\u4ee3\u7406\u914d\u7f6e\u3002${hintText} \u539f\u59cb\u9519\u8bef\uff1a${detail}`;
+}
+
 function buildOpenAIChatMessages(messages) {
   return messages.map((message) => {
     if (!Array.isArray(message.content)) {
@@ -168,6 +279,7 @@ function buildAnthropicPayload(config) {
     messages: [{ role: 'user', content: userParts }],
     temperature: typeof config.temperature === 'number' ? config.temperature : 0.4,
     max_tokens: typeof config.maxTokens === 'number' ? config.maxTokens : 700,
+    stream: false,
   };
 }
 
@@ -194,6 +306,7 @@ function buildRequestConfig(config) {
           input: buildResponsesInput(config.messages),
           temperature: typeof config.temperature === 'number' ? config.temperature : 0.4,
           max_output_tokens: typeof config.maxTokens === 'number' ? config.maxTokens : 700,
+          stream: false,
         }),
       },
     };
@@ -227,6 +340,7 @@ function buildRequestConfig(config) {
         messages: buildOpenAIChatMessages(config.messages),
         temperature: typeof config.temperature === 'number' ? config.temperature : 0.4,
         max_tokens: typeof config.maxTokens === 'number' ? config.maxTokens : 700,
+        stream: false,
       }),
     },
   };
@@ -234,21 +348,39 @@ function buildRequestConfig(config) {
 
 async function runLlmRequest(config) {
   const request = buildRequestConfig(config);
-  const response = await fetch(request.url, request.options);
-  const data = await response.json().catch(() => ({}));
+  let response;
+
+  try {
+    response = await fetch(request.url, request.options);
+  } catch (error) {
+    throw new Error(buildFetchFailureMessage(request.url, error));
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+  const rawText = await response.text();
+
+  let data = null;
+  let text = '';
+
+  if (contentType.includes('text/event-stream')) {
+    const parsedStream = parseEventStream(rawText);
+    data = parsedStream.data;
+    text = parsedStream.text;
+  } else {
+    data = parseJsonSafely(rawText);
+    text = extractAssistantText(data);
+    if (!text && typeof rawText === 'string' && rawText.trim() && !data) {
+      text = rawText.trim();
+    }
+  }
 
   if (!response.ok) {
-    const messageText =
-      data?.error?.message ||
-      data?.message ||
-      data?.error ||
-      `LLM request failed: ${response.status}`;
-    throw new Error(messageText);
+    throw new Error(extractErrorMessage(data, `LLM request failed: ${response.status}`));
   }
 
   return {
-    text: extractAssistantText(data),
-    raw: data,
+    text,
+    raw: data || rawText,
   };
 }
 
