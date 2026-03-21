@@ -8,6 +8,8 @@
   const SETTINGS_KEY = 'nai-llm-assistant-settings';
   const HISTORY_KEY = 'nai-llm-reverse-history';
   const PANEL_LAYOUT_KEY = 'nai-llm-panel-layout';
+  const PROMPT_LIBRARY_KEY = 'nai-shared-prompt-library';
+  const ROLE_LIBRARY_CATEGORY = 'char';
   const MAX_HISTORY = 30;
   const PANEL_MARGIN = 20;
   const PANEL_MIN_WIDTH = 320;
@@ -39,6 +41,9 @@
     roleSystemPrompt: '\u89d2\u8272\u6a21\u5f0f\u7cfb\u7edf\u63d0\u793a\u8bcd',
     roleReversePrompt: '\u89d2\u8272\u6a21\u5f0f\u53cd\u63a8\u6307\u4ee4',
     rolePrompt: '\u76ee\u6807\u89d2\u8272\u63d0\u793a\u8bcd',
+    roleLibrary: '\u8bcd\u5e93\u89d2\u8272',
+    roleLibraryPlaceholder: '\u9009\u62e9\u5df2\u4fdd\u5b58\u7684 char: \u89d2\u8272\u8bcd\u5e93',
+    applyRoleLibrary: '\u5957\u7528\u5230\u89d2\u8272\u63d0\u793a\u8bcd',
     sectionAppearance: '\u5916\u89c2',
     sectionAppearanceHint: '\u989c\u8272\u4e0e\u9762\u677f\u884c\u4e3a',
     sectionProvider: 'LLM \u670d\u52a1',
@@ -84,6 +89,8 @@
     statusLoadedHistory: '\u5df2\u52a0\u8f7d\u5386\u53f2\u7ed3\u679c\u3002',
     statusWrapped: '\u5df2\u5c06\u7ed3\u679c\u5305\u88f9\u4e3a\u4ee3\u7801\u6846\u3002',
     statusNoResult: '\u6682\u65e0\u53ef\u5305\u88f9\u7684\u7ed3\u679c\u3002',
+    statusRoleLibraryApplied: '\u5df2\u5c06\u8bcd\u5e93\u89d2\u8272\u5957\u7528\u5230\u89d2\u8272\u63d0\u793a\u8bcd\u3002',
+    statusRoleLibraryMissing: '\u8bf7\u5148\u9009\u62e9\u4e00\u4e2a\u8bcd\u5e93\u89d2\u8272\u3002',
     statusTestingConnection: '\u6b63\u5728\u6d4b\u8bd5\u8fde\u63a5...',
     statusNeedFallbackConfig: '\u5df2\u542f\u7528\u5907\u7528\u6a21\u578b\uff0c\u8bf7\u5148\u5b8c\u6574\u914d\u7f6e\u5907\u7528\u670d\u52a1\u5546\u3001Endpoint\u3001Model \u548c API Key\u3002',
     statusContextInvalidated: '\u6269\u5c55\u5df2\u66f4\u65b0\uff0c\u8bf7\u5237\u65b0\u5f53\u524d\u9875\u9762\u540e\u91cd\u8bd5\u3002',
@@ -169,6 +176,7 @@
     isPickingImage: false,
     pending: false,
     hoveredImage: null,
+    promptLibrary: [],
     activePage: 'reverse',
     extensionContextInvalidated: false,
     panelLayout: null,
@@ -178,6 +186,8 @@
       startY: 0,
       startLeft: 0,
       startTop: 0,
+      width: 0,
+      height: 0,
     },
     panelResize: {
       active: false,
@@ -187,6 +197,11 @@
       startTop: 0,
       startWidth: 0,
       startHeight: 0,
+    },
+    panelInteraction: {
+      rafId: 0,
+      clientX: 0,
+      clientY: 0,
     },
   };
 
@@ -228,6 +243,32 @@
     }
 
     return next;
+  }
+
+  function normalizePromptLibraryEntry(entry) {
+    const alias = String(entry?.alias || '').trim().toLowerCase();
+    const tags = Array.isArray(entry?.tags) ? entry.tags.map((tag) => String(tag || '').trim()).filter(Boolean) : [];
+    if (!alias || !tags.length) return null;
+    const [rawCategory, ...rest] = alias.split(':');
+    const category = String(entry?.category || rawCategory || '').trim().toLowerCase();
+    const name = String(entry?.name || rest.join(':') || '').trim().toLowerCase();
+    const delimiters = Array.isArray(entry?.delimiters)
+      ? entry.delimiters.map((delimiter) => String(delimiter || ''))
+      : tags.map((_, index) => index === tags.length - 1 ? '' : ', ');
+
+    while (delimiters.length < tags.length) {
+      delimiters.push(tags.length === delimiters.length + 1 ? '' : ', ');
+    }
+
+    return {
+      id: String(entry.id || alias),
+      alias,
+      shortAlias: name || (alias.includes(':') ? alias.split(':').slice(1).join(':') : alias),
+      category: category || 'char',
+      name: name || (alias.includes(':') ? alias.split(':').slice(1).join(':') : alias),
+      tags,
+      delimiters: delimiters.slice(0, tags.length),
+    };
   }
   function escapeHtml(text) {
     return String(text || '')
@@ -469,6 +510,40 @@
     };
   }
 
+  function setPanelInteractionState(isActive) {
+    if (!ui.panel) return;
+    ui.panel.classList.toggle('nai-is-interacting', Boolean(isActive));
+    ui.root?.classList.toggle('nai-panel-interacting', Boolean(isActive));
+    document.documentElement.classList.toggle('nai-panel-interacting', Boolean(isActive));
+  }
+
+  function applyPanelPointerUpdate(clientX, clientY) {
+    if (!ui.panel) return;
+
+    if (state.panelDrag.active) {
+      const left = state.panelDrag.startLeft + (clientX - state.panelDrag.startX);
+      const top = state.panelDrag.startTop + (clientY - state.panelDrag.startY);
+      const pos = clampPanelPosition(left, top, state.panelDrag.width, state.panelDrag.height);
+      ui.panel.style.left = `${Math.round(pos.left)}px`;
+      ui.panel.style.top = `${Math.round(pos.top)}px`;
+      return;
+    }
+
+    if (state.panelResize.active) {
+      const maxWidth = Math.max(PANEL_MIN_WIDTH, window.innerWidth - state.panelResize.startLeft - PANEL_MARGIN);
+      const maxHeight = Math.max(PANEL_MIN_HEIGHT, window.innerHeight - state.panelResize.startTop - PANEL_MARGIN);
+      const width = clamp(state.panelResize.startWidth + (clientX - state.panelResize.startX), PANEL_MIN_WIDTH, maxWidth);
+      const height = clamp(state.panelResize.startHeight + (clientY - state.panelResize.startY), PANEL_MIN_HEIGHT, maxHeight);
+      ui.panel.style.width = `${Math.round(width)}px`;
+      ui.panel.style.height = `${Math.round(height)}px`;
+    }
+  }
+
+  function flushPanelPointerUpdate() {
+    state.panelInteraction.rafId = 0;
+    applyPanelPointerUpdate(state.panelInteraction.clientX, state.panelInteraction.clientY);
+  }
+
   function keepPanelInsideViewport() {
     if (!ui.panel || ui.panel.classList.contains('nai-hidden')) return;
     const rect = normalizePanelRect();
@@ -494,32 +569,23 @@
 
   function onPointerMove(event) {
     if (!ui.panel) return;
-
-    if (state.panelDrag.active) {
-      const width = ui.panel.offsetWidth;
-      const height = ui.panel.offsetHeight;
-      const left = state.panelDrag.startLeft + (event.clientX - state.panelDrag.startX);
-      const top = state.panelDrag.startTop + (event.clientY - state.panelDrag.startY);
-      const pos = clampPanelPosition(left, top, width, height);
-      ui.panel.style.left = `${Math.round(pos.left)}px`;
-      ui.panel.style.top = `${Math.round(pos.top)}px`;
-      return;
-    }
-
-    if (state.panelResize.active) {
-      const maxWidth = Math.max(PANEL_MIN_WIDTH, window.innerWidth - state.panelResize.startLeft - PANEL_MARGIN);
-      const maxHeight = Math.max(PANEL_MIN_HEIGHT, window.innerHeight - state.panelResize.startTop - PANEL_MARGIN);
-      const width = clamp(state.panelResize.startWidth + (event.clientX - state.panelResize.startX), PANEL_MIN_WIDTH, maxWidth);
-      const height = clamp(state.panelResize.startHeight + (event.clientY - state.panelResize.startY), PANEL_MIN_HEIGHT, maxHeight);
-      ui.panel.style.width = `${Math.round(width)}px`;
-      ui.panel.style.height = `${Math.round(height)}px`;
+    state.panelInteraction.clientX = event.clientX;
+    state.panelInteraction.clientY = event.clientY;
+    if (!state.panelInteraction.rafId) {
+      state.panelInteraction.rafId = requestAnimationFrame(flushPanelPointerUpdate);
     }
   }
 
   function onPointerUp() {
     const hadLayoutInteraction = state.panelDrag.active || state.panelResize.active;
+    if (state.panelInteraction.rafId) {
+      cancelAnimationFrame(state.panelInteraction.rafId);
+      state.panelInteraction.rafId = 0;
+      applyPanelPointerUpdate(state.panelInteraction.clientX, state.panelInteraction.clientY);
+    }
     state.panelDrag.active = false;
     state.panelResize.active = false;
+    setPanelInteractionState(false);
     document.removeEventListener('pointermove', onPointerMove, true);
     document.removeEventListener('pointerup', onPointerUp, true);
     document.removeEventListener('pointercancel', onPointerUp, true);
@@ -543,8 +609,13 @@
     state.panelDrag.startY = event.clientY;
     state.panelDrag.startLeft = rect.left;
     state.panelDrag.startTop = rect.top;
+    state.panelDrag.width = rect.width;
+    state.panelDrag.height = rect.height;
 
     state.panelResize.active = false;
+    state.panelInteraction.clientX = event.clientX;
+    state.panelInteraction.clientY = event.clientY;
+    setPanelInteractionState(true);
     document.addEventListener('pointermove', onPointerMove, true);
     document.addEventListener('pointerup', onPointerUp, true);
     document.addEventListener('pointercancel', onPointerUp, true);
@@ -564,6 +635,9 @@
     state.panelResize.startHeight = rect.height;
 
     state.panelDrag.active = false;
+    state.panelInteraction.clientX = event.clientX;
+    state.panelInteraction.clientY = event.clientY;
+    setPanelInteractionState(true);
     document.addEventListener('pointermove', onPointerMove, true);
     document.addEventListener('pointerup', onPointerUp, true);
     document.addEventListener('pointercancel', onPointerUp, true);
@@ -775,6 +849,47 @@
     select.innerHTML = options
       .map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)}</option>`)
       .join('');
+  }
+
+  function renderPromptLibraryOptions() {
+    const select = ui.settings.roleLibrarySelect;
+    if (!select) return;
+    const roleLibraryEntries = state.promptLibrary.filter((entry) => entry.category === ROLE_LIBRARY_CATEGORY);
+
+    const libraryOptions = [
+      { value: '', label: T.roleLibraryPlaceholder },
+      ...roleLibraryEntries
+        .map((entry) => ({
+          value: entry.id,
+          label: entry.alias,
+        })),
+    ];
+
+    select.innerHTML = libraryOptions
+      .map((item) => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`)
+      .join('');
+
+    if (!roleLibraryEntries.some((entry) => entry.id === select.value)) {
+      select.value = '';
+    }
+  }
+
+  function applyPromptLibraryToRolePrompt() {
+    const select = ui.settings.roleLibrarySelect;
+    const rolePrompt = ui.settings.rolePrompt;
+    if (!select || !rolePrompt) return;
+
+    const entry = state.promptLibrary.find((item) => item.id === select.value && item.category === ROLE_LIBRARY_CATEGORY);
+    if (!entry) {
+      setStatus(T.statusRoleLibraryMissing, true);
+      return;
+    }
+
+    rolePrompt.value = entry.tags
+      .map((tag, index) => `${tag}${entry.delimiters?.[index] || ''}`)
+      .join('');
+    autoResizeTextarea(rolePrompt);
+    setStatus(T.statusRoleLibraryApplied, false);
   }
 
   function updateFallbackSettingsVisibility() {
@@ -1451,6 +1566,13 @@
           state.history = Array.isArray(changes[HISTORY_KEY].newValue) ? changes[HISTORY_KEY].newValue : [];
           renderHistory();
         }
+
+        if (changes[PROMPT_LIBRARY_KEY]) {
+          state.promptLibrary = Array.isArray(changes[PROMPT_LIBRARY_KEY].newValue)
+            ? changes[PROMPT_LIBRARY_KEY].newValue.map(normalizePromptLibraryEntry).filter(Boolean)
+            : [];
+          renderPromptLibraryOptions();
+        }
       });
     } catch (error) {
       markContextInvalidated(error);
@@ -1539,6 +1661,10 @@
             <label class="nai-md3-label">${T.roleSystemPrompt}</label><textarea class="nai-md3-input" data-field="roleSystemPrompt" rows="3"></textarea>
             <label class="nai-md3-label">${T.roleReversePrompt}</label><textarea class="nai-md3-input" data-field="roleReversePrompt" rows="3"></textarea>
             <label class="nai-md3-label">${T.rolePrompt}</label><textarea class="nai-md3-input" data-field="rolePrompt" rows="2"></textarea>
+            <div class="nai-md3-grid-2 nai-md3-library-row">
+              <div><label class="nai-md3-label">${T.roleLibrary}</label><select class="nai-md3-input" data-field="roleLibrarySelect"></select></div>
+              <div class="nai-md3-library-action"><button type="button" class="nai-md3-inline-action" data-action="apply-role-library">${T.applyRoleLibrary}</button></div>
+            </div>
           </div>
 
           <div class="nai-md3-settings-section">
@@ -1616,6 +1742,7 @@
     ui.settings.roleSystemPrompt = root.querySelector('[data-field="roleSystemPrompt"]');
     ui.settings.roleReversePrompt = root.querySelector('[data-field="roleReversePrompt"]');
     ui.settings.rolePrompt = root.querySelector('[data-field="rolePrompt"]');
+    ui.settings.roleLibrarySelect = root.querySelector('[data-field="roleLibrarySelect"]');
     ui.settings.temperature = root.querySelector('[data-field="temperature"]');
     ui.settings.maxTokens = root.querySelector('[data-field="maxTokens"]');
     ui.settings.enableFallbackModel = root.querySelector('[data-field="enableFallbackModel"]');
@@ -1635,6 +1762,7 @@
     fillSelectOptions(ui.settings.themePreset, THEME_PRESETS);
     fillSelectOptions(ui.settings.fallbackProviderPreset, PROVIDER_PRESETS);
     fillSelectOptions(ui.settings.fallbackProtocol, PROTOCOL_OPTIONS);
+    renderPromptLibraryOptions();
 
     ui.settings.providerPreset.addEventListener('change', () => syncProviderFields('primary', true));
     ui.settings.fallbackProviderPreset.addEventListener('change', () => syncProviderFields('fallback', true));
@@ -1673,6 +1801,7 @@
       else if (action === 'fetch-fallback-models') await fetchModelsFor('fallback');
       else if (action === 'test-connection') await testConnection();
       else if (action === 'wrap-code') await wrapCurrentResult();
+      else if (action === 'apply-role-library') applyPromptLibraryToRolePrompt();
       else if (action === 'save-settings') await saveSettings();
       else if (action === 'clear-history') await clearHistory();
       else if (action === 'history-copy') {
@@ -1690,11 +1819,12 @@
   }
 
   async function initState() {
-    const data = await storageGet([SETTINGS_KEY, HISTORY_KEY, PANEL_LAYOUT_KEY]);
+    const data = await storageGet([SETTINGS_KEY, HISTORY_KEY, PANEL_LAYOUT_KEY, PROMPT_LIBRARY_KEY]);
     const rawSettings = { ...DEFAULT_SETTINGS, ...(data[SETTINGS_KEY] || {}) };
     const upgradedSettings = upgradePromptSettings(rawSettings);
     state.settings = upgradedSettings;
     state.history = Array.isArray(data[HISTORY_KEY]) ? data[HISTORY_KEY] : [];
+    state.promptLibrary = Array.isArray(data[PROMPT_LIBRARY_KEY]) ? data[PROMPT_LIBRARY_KEY].map(normalizePromptLibraryEntry).filter(Boolean) : [];
     state.panelLayout = normalizeStoredPanelLayout(data[PANEL_LAYOUT_KEY]);
 
     if (JSON.stringify(rawSettings) !== JSON.stringify(upgradedSettings)) {
