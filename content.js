@@ -45,6 +45,7 @@
   let promptLibraryDialog = null;
   let promptLibraryDialogState = { blockId: '' };
   let promptBlockStates = new WeakMap();
+  let promptBlockHistoryStates = new WeakMap();
   let isPromptBlockDragMode = false;
   let promptLibrary = [];
   const PROMPT_BLOCK_COLORS = ['#f08a5d', '#7aa7ff', '#76b89a', '#c68cff', '#f4b860', '#e97a9a'];
@@ -113,6 +114,11 @@
 
   function flattenPromptBlocks(blocks) {
     return blocks.flatMap(block => block.tags.map(tag => normalizeTagValue(tag)));
+  }
+
+  function getPlainQueryMatch(text) {
+    const source = String(text || '');
+    return source.match(/^(.*?)([\p{L}\p{N}_][\p{L}\p{N}_ '"\-./()]*)$/u);
   }
 
   function createSingleBlocksFromText(text) {
@@ -237,6 +243,65 @@
     return null;
   }
 
+  function getPromptLibraryStorageError(error) {
+    const message = String(error?.message || error || '');
+    if (/Extension context invalidated/i.test(message) || !getStorageArea()) {
+      return '扩展刚刚重载，当前页面还是旧脚本。请刷新页面后再保存词库。';
+    }
+    return '词库保存失败，请稍后重试。';
+  }
+
+  function readPromptLibraryLocalBackup() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(PROMPT_LIBRARY_KEY) || 'null');
+      return Array.isArray(parsed) ? parsed.map(normalizePromptLibraryEntry).filter(Boolean) : [];
+    } catch (error) {
+      return [];
+    }
+  }
+
+  function clearPromptLibraryLocalBackup() {
+    try {
+      localStorage.removeItem(PROMPT_LIBRARY_KEY);
+    } catch (error) {}
+  }
+
+  function mergePromptLibraryEntries(primaryEntries, secondaryEntries) {
+    const merged = [];
+    const aliasIndexMap = new Map();
+    const idIndexMap = new Map();
+
+    const upsert = (entry) => {
+      const normalized = normalizePromptLibraryEntry(entry);
+      if (!normalized) return;
+
+      const aliasKey = normalized.alias;
+      const idKey = normalized.id ? String(normalized.id) : '';
+      const existingIndex = aliasIndexMap.get(aliasKey) ?? (idKey ? idIndexMap.get(idKey) : undefined);
+
+      if (existingIndex === undefined) {
+        merged.push(normalized);
+        const index = merged.length - 1;
+        aliasIndexMap.set(aliasKey, index);
+        if (idKey) idIndexMap.set(idKey, index);
+        return;
+      }
+
+      const existing = merged[existingIndex];
+      const existingTime = Number(existing.updatedAt || existing.createdAt || 0);
+      const incomingTime = Number(normalized.updatedAt || normalized.createdAt || 0);
+      if (incomingTime < existingTime) return;
+
+      merged[existingIndex] = normalized;
+      aliasIndexMap.set(aliasKey, existingIndex);
+      if (idKey) idIndexMap.set(idKey, existingIndex);
+    };
+
+    (primaryEntries || []).forEach(upsert);
+    (secondaryEntries || []).forEach(upsert);
+    return merged;
+  }
+
   function storageGetLocal(key) {
     const area = getStorageArea();
     if (!area) {
@@ -274,16 +339,79 @@
     });
   }
 
+  function storageGetLocalStrict(key) {
+    const area = getStorageArea();
+    if (!area) {
+      return Promise.reject(new Error('Extension context invalidated'));
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        area.get([key], (result) => {
+          const message = chrome?.runtime?.lastError?.message;
+          if (message) {
+            reject(new Error(message));
+            return;
+          }
+          resolve(result || {});
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
+  function storageSetLocalStrict(data) {
+    const area = getStorageArea();
+    if (!area) {
+      return Promise.reject(new Error('Extension context invalidated'));
+    }
+
+    return new Promise((resolve, reject) => {
+      try {
+        area.set(data, () => {
+          const message = chrome?.runtime?.lastError?.message;
+          if (message) {
+            reject(new Error(message));
+            return;
+          }
+          resolve();
+        });
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
   async function loadPromptLibrary() {
-    const stored = await storageGetLocal(PROMPT_LIBRARY_KEY);
-    promptLibrary = Array.isArray(stored[PROMPT_LIBRARY_KEY])
-      ? stored[PROMPT_LIBRARY_KEY].map(normalizePromptLibraryEntry).filter(Boolean)
-      : [];
+    const backupEntries = readPromptLibraryLocalBackup();
+
+    try {
+      const stored = await storageGetLocalStrict(PROMPT_LIBRARY_KEY);
+      const extensionEntries = Array.isArray(stored[PROMPT_LIBRARY_KEY])
+        ? stored[PROMPT_LIBRARY_KEY].map(normalizePromptLibraryEntry).filter(Boolean)
+        : [];
+      const mergedEntries = mergePromptLibraryEntries(extensionEntries, backupEntries);
+
+      promptLibrary = mergedEntries;
+
+      if (backupEntries.length) {
+        const extensionSnapshot = JSON.stringify(extensionEntries);
+        const mergedSnapshot = JSON.stringify(mergedEntries);
+        if (extensionSnapshot !== mergedSnapshot) {
+          await storageSetLocalStrict({ [PROMPT_LIBRARY_KEY]: mergedEntries });
+        }
+        clearPromptLibraryLocalBackup();
+      }
+    } catch (error) {
+      promptLibrary = backupEntries;
+    }
   }
 
   async function savePromptLibrary(entries) {
     promptLibrary = entries.map(normalizePromptLibraryEntry).filter(Boolean);
-    await storageSetLocal({ [PROMPT_LIBRARY_KEY]: promptLibrary });
+    await storageSetLocalStrict({ [PROMPT_LIBRARY_KEY]: promptLibrary });
+    clearPromptLibraryLocalBackup();
   }
 
   function getEditorStorageKey(editor) {
@@ -358,6 +486,73 @@
     };
     promptBlockStates.set(editor, state);
     persistPromptBlockState(editor, state);
+  }
+
+  function getPromptBlockHistory(editor) {
+    if (!editor) return [];
+    let history = promptBlockHistoryStates.get(editor);
+    if (!history) {
+      history = [];
+      promptBlockHistoryStates.set(editor, history);
+    }
+    return history;
+  }
+
+  function snapshotPromptBlockState(editor) {
+    return {
+      blocks: clonePromptBlocks(promptBlocks),
+      signature: promptBlockSignature,
+      text: getEditorText(editor),
+    };
+  }
+
+  function pushPromptBlockHistory(editor) {
+    if (!editor) return;
+    const history = getPromptBlockHistory(editor);
+    history.push(snapshotPromptBlockState(editor));
+    if (history.length > 40) {
+      history.splice(0, history.length - 40);
+    }
+  }
+
+  function restorePromptBlockHistory(editor) {
+    if (!editor) return false;
+    const history = getPromptBlockHistory(editor);
+    if (!history.length) return false;
+
+    const currentText = getEditorText(editor);
+    let targetIndex = -1;
+    for (let index = history.length - 1; index >= 0; index -= 1) {
+      if (history[index].text === currentText) {
+        targetIndex = index;
+        break;
+      }
+    }
+
+    if (targetIndex === -1) return false;
+
+    const [snapshot] = history.splice(targetIndex, 1);
+    promptBlocks = clonePromptBlocks(snapshot.blocks);
+    promptBlockSignature = snapshot.signature;
+    savePromptBlockState(editor);
+    renderPromptBlockPanel(editor);
+    updatePromptBlockToolbar(editor);
+    if (!promptBlocks.some(block => block.isGroup)) {
+      hidePromptBlockToolbar();
+    }
+    return true;
+  }
+
+  function schedulePromptBlockUndoSync(editor) {
+    if (!editor) return;
+    setTimeout(() => {
+      if (!editor.isConnected) return;
+      activeEditor = editor;
+      if (!restorePromptBlockHistory(editor)) {
+        ensurePromptBlockModel(editor);
+      }
+      updatePromptBlockToolbar(editor);
+    }, 0);
   }
 
   function rebuildPromptBlocksFromTokens(tokens) {
@@ -1024,6 +1219,9 @@
     match = word.match(/^artist(?::|：)(.*)$/);
     if (match) return match[1];
 
+    const plainQueryMatch = getPlainQueryMatch(word);
+    if (plainQueryMatch) return plainQueryMatch[2];
+
     return word;
   }
 
@@ -1043,16 +1241,21 @@
     const context = getSegmentContext();
     if (!context) return;
 
+    const plainQueryMatch = getPlainQueryMatch(context.segmentText);
+    const replaceStartOffset = context.segmentStartOffset + (plainQueryMatch ? plainQueryMatch[1].length : 0);
     const fullText = getEditorText(activeEditor);
-    const replaceStartTokenIndex = splitPromptTags(fullText.slice(0, context.segmentStartOffset)).length;
-    const replaceTokenCount = Math.max(1, splitPromptTags(`${context.segmentText}${context.segmentTailText}`).length);
+    const replaceStartTokenIndex = splitPromptTags(fullText.slice(0, replaceStartOffset)).length;
+    const replaceTokenCount = 1;
     const replaceEndTokenIndex = replaceStartTokenIndex + replaceTokenCount - 1;
     const insertedDelimiters = [...(entry.delimiters || entry.tags.map((_, index) => index === entry.tags.length - 1 ? '' : ', '))];
     const nextChar = context.nextMeaningfulChar;
     if (nextChar === ',' || nextChar === '，' || nextChar === '\n') {
       insertedDelimiters[insertedDelimiters.length - 1] = '';
+    } else if (!insertedDelimiters[insertedDelimiters.length - 1]) {
+      insertedDelimiters[insertedDelimiters.length - 1] = ', ';
     }
 
+    pushPromptBlockHistory(activeEditor);
     promptBlocks = replacePromptBlocksByTokenRange(replaceStartTokenIndex, replaceEndTokenIndex, [{
       id: createId('block'),
       tags: [...entry.tags],
@@ -1087,31 +1290,41 @@
     let start = 0;
     let isAfterComplete = false;
     let isMultiTagFormat = false;
+    let replaceTail = false;
     const preservedSuffixMatch = segmentTailText.match(/[\)\]\}]+$/);
     const preservedSuffix = preservedSuffixMatch ? preservedSuffixMatch[0] : '';
     const normalizedTail = segmentTailText.slice(0, segmentTailText.length - preservedSuffix.length);
     const fullSegment = `${currentSegment}${normalizedTail}`;
-    const shouldAppendComma = nextMeaningfulChar !== ',' && nextMeaningfulChar !== '，';
+    const hasTrailingText = Boolean(normalizedTail.trim());
+    const shouldAppendComma = hasTrailingText || (nextMeaningfulChar !== ',' && nextMeaningfulChar !== '，' && nextMeaningfulChar !== '\n');
 
     const exactCompleteMatch = fullSegment.match(/^(-?\d+\.?\d*(?::|：){2}(artist(?::|：))?[^:：]+(?::|：){1,2})$/);
     const afterCompleteMatch = fullSegment.match(/^(-?\d+\.?\d*(?::|：){2}(artist(?::|：))?[^:：]+(?::|：){2})(.+)$/);
     if (exactCompleteMatch) {
       isAfterComplete = false;
+      replaceTail = true;
     } else if (afterCompleteMatch) {
       start = afterCompleteMatch[1].length;
       isAfterComplete = true;
+      replaceTail = true;
     } else {
       const multiTagMatch = fullSegment.match(/^(-?\d+\.?\d*(?::|：){2}.*,)/);
       if (multiTagMatch) {
         start = multiTagMatch[1].length;
         isMultiTagFormat = true;
+        replaceTail = true;
+      } else {
+        const plainQueryMatch = getPlainQueryMatch(currentSegment);
+        if (plainQueryMatch) {
+          start = plainQueryMatch[1].length;
+        }
       }
     }
 
     const replacementRange = createRangeFromTextOffsets(
       editor,
       segmentStartOffset + start,
-      caretOffset + segmentTailText.length
+      replaceTail ? caretOffset + segmentTailText.length : caretOffset
     );
     if (!replacementRange) return;
 
@@ -1128,10 +1341,17 @@
     const weight = Number.isFinite(tag.weight) ? tag.weight : 1.0;
     const useArtist = tag.category === '1' && tag.useArtistPrefix;
     const commaSuffix = shouldAppendComma ? ', ' : '';
+    const existingPrefix = currentSegment.slice(0, start);
+    const hasExplicitArtistPrefix = /artist(?::|：)$/i.test(existingPrefix);
+    const hasExplicitWeightedPrefix = /-?\d+\.?\d*(?::|：){2}(artist(?::|：))?$/i.test(existingPrefix);
 
     let output;
     if (isAfterComplete || isMultiTagFormat) {
       output = `${tagName}${preservedSuffix}${shouldAppendComma ? ',' : ''}`;
+    } else if (hasExplicitWeightedPrefix) {
+      output = `${tagName}::${preservedSuffix}${commaSuffix}`;
+    } else if (hasExplicitArtistPrefix) {
+      output = `${tagName}${preservedSuffix}${commaSuffix}`;
     } else if (weight !== 1.0) {
       const weightStr = weight.toFixed(1);
       output = useArtist
@@ -1213,6 +1433,7 @@
       if (blockIndex === -1) return;
 
       if (target.dataset.action === 'toggle-lock') {
+        pushPromptBlockHistory(activeEditor);
         promptBlocks[blockIndex] = {
           ...promptBlocks[blockIndex],
           locked: !promptBlocks[blockIndex].locked,
@@ -1223,6 +1444,7 @@
       }
 
       if (target.dataset.action === 'remove-block' && promptBlocks[blockIndex].isGroup) {
+        pushPromptBlockHistory(activeEditor);
         const singles = promptBlocks[blockIndex].tags.map((tag, index) => ({
           id: createId('tag'),
           tags: [tag],
@@ -1399,6 +1621,14 @@
     }
   }
 
+  function setPromptLibraryDialogError(message) {
+    const dialog = createPromptLibraryDialog();
+    const error = dialog.querySelector('[data-field="alias-error"]');
+    if (!error) return;
+    error.textContent = String(message || '').trim();
+    error.classList.toggle('nai-hidden', !error.textContent);
+  }
+
   function openPromptLibraryDialog(blockId) {
     const block = promptBlocks.find((entry) => entry.id === blockId && entry.isGroup);
     if (!block) return;
@@ -1464,7 +1694,13 @@
       nextLibrary.unshift(nextEntry);
     }
 
-    await savePromptLibrary(nextLibrary);
+    try {
+      await savePromptLibrary(nextLibrary);
+    } catch (error) {
+      setPromptLibraryDialogError(getPromptLibraryStorageError(error));
+      return;
+    }
+
     promptBlocks[blockIndex] = {
       ...promptBlocks[blockIndex],
       libraryId: nextEntry.id,
@@ -1474,6 +1710,10 @@
     savePromptBlockState(activeEditor);
     renderPromptBlockPanel(activeEditor);
     closePromptLibraryDialog();
+
+    try {
+      chrome.runtime?.sendMessage?.({ type: 'nai-prompt-library-updated' });
+    } catch (error) {}
   }
 
   function hidePromptBlockDropIndicator() {
@@ -1765,6 +2005,7 @@
       return;
     }
 
+    pushPromptBlockHistory(activeEditor);
     promptBlocks = [
       ...before,
       { id: createId('block'), tags: groupedTags, delimiters: groupedDelimiters, locked: false, isGroup: true },
@@ -1830,6 +2071,7 @@
       .slice(0, fromIndex)
       .reduce((sum, block) => sum + block.tags.length, 0);
 
+    pushPromptBlockHistory(activeEditor);
     const [block] = promptBlocks.splice(fromIndex, 1);
     let insertIndex = promptBlocks.length;
     let cursor = 0;
@@ -1860,6 +2102,8 @@
 
     if (crossesLocked) {
       promptBlocks.splice(fromIndex, 0, block);
+      const history = getPromptBlockHistory(activeEditor);
+      history.pop();
       return;
     }
 
@@ -1927,6 +2171,17 @@
     });
 
     document.addEventListener('keydown', handleKeyDown, true);
+    document.addEventListener('keydown', event => {
+      if (event.altKey) return;
+      if (!(event.ctrlKey || event.metaKey)) return;
+      if (event.key.toLowerCase() !== 'z') return;
+
+      const selection = window.getSelection();
+      const editor = activeEditor || (selection?.rangeCount ? getEditorFromRange(selection.getRangeAt(0)) : null);
+      if (!editor) return;
+
+      schedulePromptBlockUndoSync(editor);
+    }, true);
     document.addEventListener('keydown', event => {
       if (event.key === 'Alt') {
         setPromptBlockDragMode(true);

@@ -874,6 +874,14 @@
     }
   }
 
+  async function refreshPromptLibraryOptions() {
+    const data = await storageGet([PROMPT_LIBRARY_KEY]);
+    state.promptLibrary = Array.isArray(data[PROMPT_LIBRARY_KEY])
+      ? data[PROMPT_LIBRARY_KEY].map(normalizePromptLibraryEntry).filter(Boolean)
+      : [];
+    renderPromptLibraryOptions();
+  }
+
   function applyPromptLibraryToRolePrompt() {
     const select = ui.settings.roleLibrarySelect;
     const rolePrompt = ui.settings.rolePrompt;
@@ -1842,6 +1850,16 @@
         if (message.type === 'nai-open-panel') {
           openPanel(message.page === 'settings' ? 'settings' : 'reverse');
           sendResponse({ ok: true });
+          return true;
+        }
+
+        if (message.type === 'nai-prompt-library-updated') {
+          refreshPromptLibraryOptions()
+            .then(() => sendResponse({ ok: true }))
+            .catch((error) => {
+              markContextInvalidated(error);
+              sendResponse({ ok: false });
+            });
           return true;
         }
 
