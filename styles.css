@@ -1909,9 +1909,21 @@ html.nai-image-pick-mode * {
   align-items: end;
 }
 
+.nai-md3-library-action-stack {
+  flex-direction: column;
+  gap: 8px;
+}
+
 .nai-md3-library-action .nai-md3-inline-action {
   width: 100%;
   justify-content: center;
+}
+
+.nai-md3-prompt-preset-note {
+  margin-top: -2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--md-sys-color-on-surface-variant);
 }
 
 .nai-md3-settings-section {

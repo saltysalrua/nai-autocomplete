@@ -50,6 +50,16 @@
     sectionProviderHint: '\u6a21\u578b\u3001Endpoint \u4e0e\u8fde\u63a5\u68c0\u67e5',
     sectionPrompt: '\u63d0\u793a\u8bcd',
     sectionPromptHint: '\u53cd\u63a8\u903b\u8f91\u4e0e\u89d2\u8272\u66ff\u6362',
+    promptPreset: '\u63d0\u793a\u8bcd\u9884\u8bbe',
+    promptPresetPlaceholder: '\u9009\u62e9\u4e00\u5957\u5185\u7f6e\u63d0\u793a\u8bcd\u6a21\u677f',
+    promptPresetCustom: '\u81ea\u5b9a\u4e49\uff08\u5f53\u524d\u8f93\u5165\uff09',
+    applyPromptPreset: '\u5957\u7528\u9884\u8bbe',
+    importStPreset: '\u5bfc\u5165 ST \u9884\u8bbe',
+    stImportHint: '\u652f\u6301\u5bfc\u5165 SillyTavern \u98ce\u683c\u7684 preset JSON\uff0c\u4f1a\u6309 prompt_order \u8fd8\u539f\u987a\u5e8f\u5e76\u5c1d\u8bd5\u6620\u5c04\u5230\u5f53\u524d\u7684\u53cd\u63a8/\u89d2\u8272\u66ff\u6362\u63d0\u793a\u8bcd\u3002',
+    statusPromptPresetApplied: '\u63d0\u793a\u8bcd\u9884\u8bbe\u5df2\u5957\u7528\u3002',
+    statusPromptPresetInvalid: '\u8bf7\u5148\u9009\u62e9\u4e00\u4e2a\u53ef\u5957\u7528\u7684\u63d0\u793a\u8bcd\u9884\u8bbe\u3002',
+    statusStPresetImported: 'SillyTavern \u9884\u8bbe\u5df2\u5bfc\u5165\u5e76\u5957\u7528\u5230\u5f53\u524d\u8bbe\u7f6e\u3002',
+    statusStPresetImportFailed: '\u5bfc\u5165 SillyTavern \u9884\u8bbe\u5931\u8d25\uff1a\u6587\u4ef6\u7ed3\u6784\u4e0d\u7b26\u5408\u9884\u671f\u6216\u7f3a\u5c11 prompts\u3002',
     sectionBehavior: '\u751f\u6210\u9009\u9879',
     sectionBehaviorHint: '\u56fe\u7247\u53d1\u9001\u65b9\u5f0f\u4e0e\u8f93\u51fa\u884c\u4e3a',
     sectionFallback: '\u5907\u7528\u6a21\u578b',
@@ -102,6 +112,7 @@
     endpoint: 'https://api.openai.com/v1/chat/completions',
     model: 'gpt-4.1-mini',
     apiKey: '',
+    promptPreset: 'nai-v4-structured',
     systemPrompt: '\u4f60\u662f NovelAI \u56fe\u50cf\u63d0\u793a\u8bcd\u53cd\u63a8\u4e13\u5bb6\uff0c\u4e13\u7cbe V4+ \u52a8\u6f2b\u98ce\u683c\u751f\u6210\u6a21\u578b\u3002\u5f53\u7528\u6237\u63d0\u4f9b\u56fe\u50cf\u65f6\uff0c\u53ea\u8f93\u51fa\u5355\u4e2a\u7eaf\u82f1\u6587\u3001NovelAI-ready \u7684 prompt \u672c\u4f53\uff0c\u4e0d\u8981\u89e3\u91ca\uff0c\u4e0d\u8981\u6807\u9898\uff0c\u4e0d\u8981 TAGS\uff0c\u4e0d\u8981 PROMPT\uff0c\u4e0d\u8981 JSON\uff0c\u4e0d\u8981\u4ee3\u7801\u5757\u5916\u7684\u4efb\u4f55\u6587\u5b57\u3002\u63d0\u793a\u8bcd\u5fc5\u987b\u5c3d\u91cf\u4f7f\u7528 Danbooru \u98ce\u683c tag\uff0c\u591a\u8bcd tag \u4f7f\u7528\u4e0b\u5212\u7ebf\uff0c\u540c\u65f6\u5141\u8bb8\u5c11\u91cf\u81ea\u7136\u8bed\u8a00\u77ed\u8bed\u589e\u5f3a\u573a\u666f\u4e00\u81f4\u6027\u3002\u7edd\u5bf9\u4e0d\u8981\u6dfb\u52a0 masterpiece, best quality, very aesthetic, absurdres, highly detailed \u7b49\u8d28\u91cf\u589e\u5f3a\u8bcd\uff0c\u4e5f\u4e0d\u8981\u8f93\u51fa negative prompt\u3002',
     reversePrompt: '\u8bf7\u5c06\u8fd9\u5f20\u56fe\u53cd\u63a8\u4e3a\u53ef\u76f4\u63a5\u7528\u4e8e NovelAI \u7684\u5355\u4e2a\u82f1\u6587 prompt\uff0c\u53ea\u8f93\u51fa prompt \u672c\u4f53\uff0c\u4e0d\u8981\u4efb\u4f55\u989d\u5916\u6587\u5b57\u3002\u987a\u5e8f\u5fc5\u987b\u4f18\u5148\u4e3a\uff1a\u6574\u4f53\u573a\u666f/\u6784\u56fe/\u4eba\u6570/\u706f\u5149 -> \u89d2\u8272\u6838\u5fc3\u7279\u5f81\uff08\u8d8a\u91cd\u8981\u8d8a\u9760\u524d\uff09\u3002\u5355\u89d2\u8272\u65f6\u8bf7\u7528\u6362\u884c\u5206\u4e3a 3-4 \u5c42\uff1a\u7b2c 1 \u884c\u5199 scene/composition/\u4eba\u6570\uff0c\u7b2c 2 \u884c\u5199\u53d1\u8272/\u53d1\u578b/\u77b3\u8272/\u8084\u4f53/\u7279\u5f81\uff0c\u7b2c 3 \u884c\u5199\u670d\u88c5\u4e0e\u914d\u9970\uff0c\u7b2c 4 \u884c\u5199\u52a8\u4f5c/\u8868\u60c5/\u573a\u666f/\u5149\u5f71/\u955c\u5934\u3002\u591a\u89d2\u8272\uff082-6\u4eba\uff09\u65f6\u5fc5\u987b\u4f7f\u7528 NovelAI V4+ \u7684 | \u5206\u9694\u7ed3\u6784\uff0c\u6574\u4e2a prompt \u4ee5\u6700\u540e\u4e00\u4e2a | \u7ed3\u5c3e\u3002\u53ef\u6df7\u5408 Danbooru \u7cbe\u786e tag \u548c\u77ed\u53e5\uff0c\u4f46\u4e0d\u8981\u51fa\u73b0\u4efb\u4f55 tag \u4ee5\u5916\u7684\u6807\u9898\u8bcd\u3002',
     enableRoleReplaceMode: false,
@@ -148,6 +159,41 @@
     { id: 'ember', label: '\u4f59\u70ec\u66ae\u68d5' },
     { id: 'midnight', label: '\u6df1\u6d77\u591c\u84dd' },
     { id: 'moss', label: '\u9752\u82d4\u5e7d\u591c' },
+  ];
+  const PROMPT_PRESETS = [
+    {
+      id: 'nai-v4-structured',
+      label: 'NAI V4 \u5206\u5c42 Tag',
+      note: '\u9002\u5408 NovelAI V4+ \u56fe\u50cf\u53cd\u63a8\uff0c\u5355\u4eba\u5206\u5c42\uff0c\u591a\u4eba\u5f3a\u5236 `|` \u7ed3\u6784\uff0c\u8f93\u51fa\u5c3d\u91cf\u63a5\u8fd1\u53ef\u76f4\u7528 prompt\u3002',
+      values: {
+        systemPrompt: DEFAULT_SETTINGS.systemPrompt,
+        reversePrompt: DEFAULT_SETTINGS.reversePrompt,
+        roleSystemPrompt: DEFAULT_SETTINGS.roleSystemPrompt,
+        roleReversePrompt: DEFAULT_SETTINGS.roleReversePrompt,
+      },
+    },
+    {
+      id: 'nai-v4-compact',
+      label: 'NAI V4 \u7d27\u51d1 Tag',
+      note: '\u66f4\u504f\u5411\u7d27\u51d1 Danbooru tag \u4e32\uff0c\u9002\u5408\u4f60\u670b\u53cb\u540e\u9762\u81ea\u5df1\u518d\u52a0\u5de5\u3001\u5fae\u8c03\u7684\u6d41\u7a0b\u3002',
+      values: {
+        systemPrompt: '\u4f60\u662f NovelAI V4+ \u53cd\u63a8\u6807\u7b7e\u4e13\u5bb6\u3002\u5f53\u7528\u6237\u63d0\u4f9b\u56fe\u50cf\u65f6\uff0c\u53ea\u8f93\u51fa\u4e00\u6761\u82f1\u6587\u3001NovelAI-ready \u7684 prompt \u672c\u4f53\uff0c\u4e0d\u8981\u6807\u9898\uff0c\u4e0d\u8981\u89e3\u91ca\uff0c\u4e0d\u8981 JSON\uff0c\u4e0d\u8981 Markdown\uff0c\u4e0d\u8981 negative prompt\u3002\u4f18\u5148\u4f7f\u7528 Danbooru tag\uff0c\u591a\u8bcd tag \u7528\u4e0b\u5212\u7ebf\uff0c\u6807\u7b7e\u4e4b\u95f4\u7528\u9017\u53f7+\u7a7a\u683c\u5206\u9694\uff0c\u907f\u514d\u5e7b\u89c9\u548c\u8d28\u91cf\u6c34\u8bcd\u3002',
+        reversePrompt: '\u8bf7\u5c06\u56fe\u50cf\u53cd\u63a8\u4e3a\u4e00\u6761 NovelAI-ready \u82f1\u6587 prompt\uff0c\u4ec5\u8f93\u51fa prompt \u672c\u4f53\u3002\u6309 subject -> appearance -> clothing -> pose/expression -> composition/camera -> lighting/background/style \u987a\u5e8f\u8f93\u51fa\uff0c\u5c3d\u91cf\u4f7f\u7528\u7d27\u51d1\u3001\u53ef\u68c0\u7d22\u7684 Danbooru \u6807\u7b7e\u3002',
+        roleSystemPrompt: '\u4f60\u662f NovelAI V4+ \u89d2\u8272\u66ff\u6362\u53cd\u63a8\u4e13\u5bb6\u3002\u4fdd\u7559\u539f\u56fe\u7684 composition\u3001pose\u3001camera angle\u3001clothing structure\u3001scene\u3001lighting\u3001mood \u548c style\uff0c\u53ea\u5c06\u89d2\u8272\u66ff\u6362\u4e3a\u76ee\u6807\u89d2\u8272\u8bbe\u5b9a\uff0c\u6700\u7ec8\u4ec5\u8f93\u51fa\u4e00\u6761\u82f1\u6587 prompt\u3002',
+        roleReversePrompt: '\u8bf7\u5c06\u56fe\u50cf\u53cd\u63a8\u4e3a\u4e00\u6761 NovelAI-ready \u82f1\u6587 prompt\uff0c\u540c\u65f6\u5b8c\u6210\u89d2\u8272\u66ff\u6362\uff1a\u4fdd\u7559\u539f\u56fe\u7684 composition\u3001pose\u3001camera angle\u3001clothing structure\u3001scene\u3001lighting\u3001mood \u548c style\uff0c\u4eba\u7269\u6539\u4e3a\u76ee\u6807\u89d2\u8272\u3002\u53ea\u8f93\u51fa prompt \u672c\u4f53\uff0c\u987a\u5e8f\u4e3a scene -> target character traits -> clothes/accessories -> action/expression -> lighting/background/style\u3002',
+      },
+    },
+    {
+      id: 'sillytavern-natural',
+      label: 'SillyTavern \u63cf\u8ff0\u5411',
+      note: '\u53c2\u8003 SillyTavern \u5e38\u89c1\u7684\u63cf\u8ff0\u5f0f prompt \u98ce\u683c\uff0c\u4f1a\u7528\u5c11\u91cf\u81ea\u7136\u8bed\u8a00\u77ed\u8bed\u4e32\u8054 tag\uff0c\u66f4\u597d\u8bfb\u3002',
+      values: {
+        systemPrompt: '\u4f60\u662f\u7528\u4e8e NovelAI \u7684\u56fe\u50cf\u63cf\u8ff0 prompt \u52a9\u624b\uff0c\u98ce\u683c\u53c2\u8003 SillyTavern \u5e38\u89c1\u7684\u63cf\u8ff0\u5f0f\u7ec4\u88c5\u65b9\u5f0f\u3002\u8bf7\u53ea\u8f93\u51fa\u4e00\u6bb5\u82f1\u6587 prompt \u672c\u4f53\uff0c\u4e0d\u8981\u9898\u5934\u3001\u89e3\u91ca\u3001JSON \u6216\u5217\u8868\u3002\u5141\u8bb8\u5728 Danbooru tag \u4e4b\u95f4\u63d2\u5165\u5c11\u91cf\u81ea\u7136\u8bed\u8a00\u77ed\u8bed\uff0c\u7528\u6765\u63cf\u8ff0\u6784\u56fe\u3001\u6c14\u6c1b\u548c\u955c\u5934\u611f\uff0c\u4f46\u4e0d\u8981\u5197\u957f\u3002',
+        reversePrompt: '\u8bf7\u89c2\u5bdf\u56fe\u50cf\uff0c\u5199\u51fa\u4e00\u6bb5\u7b80\u6d01\u7684 NovelAI prompt\uff1a\u5148\u5199\u573a\u666f\u3001\u6784\u56fe\u548c\u4eba\u6570\uff0c\u518d\u5199\u89d2\u8272\u5173\u952e\u5916\u89c2\u3001\u670d\u88c5\u548c\u52a8\u4f5c\uff0c\u6700\u540e\u8865\u5145\u955c\u5934\u3001\u5149\u5f71\u3001\u80cc\u666f\u4e0e style\u3002\u4f18\u5148\u4f7f\u7528 Danbooru tag\uff0c\u5fc5\u8981\u65f6\u7528\u5c11\u91cf\u77ed\u53e5\u4e32\u8054\uff0c\u53ea\u8f93\u51fa prompt \u672c\u4f53\u3002',
+        roleSystemPrompt: '\u4f60\u662f\u7528\u4e8e NovelAI \u7684\u89d2\u8272\u66ff\u6362\u63cf\u8ff0 prompt \u52a9\u624b\u3002\u4f60\u9700\u8981\u4fdd\u7559\u539f\u56fe\u7684 composition\u3001pose\u3001scene\u3001lighting\u3001camera angle \u548c style\uff0c\u4ec5\u5c06\u89d2\u8272\u6539\u6210\u76ee\u6807\u89d2\u8272\u8bbe\u5b9a\uff0c\u5e76\u4ec5\u8f93\u51fa\u4e00\u6bb5\u82f1\u6587 prompt \u672c\u4f53\u3002',
+        roleReversePrompt: '\u8bf7\u89c2\u5bdf\u56fe\u50cf\u5e76\u5b8c\u6210\u89d2\u8272\u66ff\u6362\uff1a\u4fdd\u6301\u539f\u56fe\u7684 pose\u3001composition\u3001camera angle\u3001clothing structure\u3001scene\u3001lighting\u3001mood \u548c style\uff0c\u4f46\u5c06\u4eba\u7269\u66ff\u6362\u4e3a\u76ee\u6807\u89d2\u8272\u3002\u8f93\u51fa\u4e00\u6bb5\u7b80\u6d01\u7684 NovelAI prompt\uff0c\u5148\u5199\u573a\u666f\u4e0e\u76ee\u6807\u89d2\u8272\uff0c\u540e\u5199\u670d\u88c5\u3001\u52a8\u4f5c\u3001\u955c\u5934\u548c\u6c14\u6c1b\uff0c\u53ea\u8f93\u51fa prompt \u672c\u4f53\u3002',
+      },
+    },
   ];
   const LEGACY_DEFAULT_PROMPTS = {
     systemPrompt: [
@@ -222,6 +268,19 @@
     settings: {},
   };
 
+  function getPromptPresetById(id) {
+    return PROMPT_PRESETS.find((item) => item.id === id) || null;
+  }
+
+  function detectPromptPresetId(settings) {
+    for (const preset of PROMPT_PRESETS) {
+      const matches = ['systemPrompt', 'reversePrompt', 'roleSystemPrompt', 'roleReversePrompt']
+        .every((key) => String(settings?.[key] || '').trim() === String(preset.values[key] || '').trim());
+      if (matches) return preset.id;
+    }
+    return 'custom';
+  }
+
 
   function upgradePromptSettings(settings) {
     const next = { ...settings };
@@ -241,6 +300,8 @@
     if (!next.roleReversePrompt || LEGACY_DEFAULT_PROMPTS.roleReversePrompt.includes(next.roleReversePrompt)) {
       next.roleReversePrompt = DEFAULT_SETTINGS.roleReversePrompt;
     }
+
+    next.promptPreset = detectPromptPresetId(next);
 
     return next;
   }
@@ -849,6 +910,200 @@
     select.innerHTML = options
       .map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)}</option>`)
       .join('');
+  }
+
+  function updatePromptPresetUiState() {
+    const select = ui.settings.promptPreset;
+    const note = ui.settings.promptPresetNote;
+    const applyButton = ui.root?.querySelector('[data-action="apply-prompt-preset"]');
+    if (!select) return;
+
+    const preset = getPromptPresetById(select.value);
+    if (note) {
+      note.textContent = preset?.note || '';
+      note.classList.toggle('nai-hidden', !preset?.note);
+    }
+    if (applyButton instanceof HTMLButtonElement) {
+      applyButton.disabled = !preset;
+    }
+  }
+
+  function renderPromptPresetOptions() {
+    const select = ui.settings.promptPreset;
+    if (!select) return;
+
+    const options = [
+      { id: '', label: T.promptPresetPlaceholder },
+      ...PROMPT_PRESETS.map((item) => ({ id: item.id, label: item.label })),
+      { id: 'custom', label: T.promptPresetCustom },
+    ];
+
+    select.innerHTML = options
+      .map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.label)}</option>`)
+      .join('');
+
+    updatePromptPresetUiState();
+  }
+
+  function syncPromptPresetSelection() {
+    if (!ui.settings.promptPreset) return;
+    ui.settings.promptPreset.value = detectPromptPresetId({
+      systemPrompt: ui.settings.systemPrompt?.value,
+      reversePrompt: ui.settings.reversePrompt?.value,
+      roleSystemPrompt: ui.settings.roleSystemPrompt?.value,
+      roleReversePrompt: ui.settings.roleReversePrompt?.value,
+    });
+    updatePromptPresetUiState();
+  }
+
+  function applyPromptPresetValues(presetId) {
+    const preset = getPromptPresetById(presetId);
+    if (!preset) {
+      setStatus(T.statusPromptPresetInvalid, true);
+      return;
+    }
+
+    ui.settings.systemPrompt.value = preset.values.systemPrompt;
+    ui.settings.reversePrompt.value = preset.values.reversePrompt;
+    ui.settings.roleSystemPrompt.value = preset.values.roleSystemPrompt;
+    ui.settings.roleReversePrompt.value = preset.values.roleReversePrompt;
+    ui.settings.promptPreset.value = preset.id;
+    autoResizeAllTextareas();
+    updatePromptPresetUiState();
+    setStatus(T.statusPromptPresetApplied, false);
+  }
+
+  function normalizeImportedPromptText(text) {
+    return String(text || '')
+      .replace(/\r\n/g, '\n')
+      .split('\n')
+      .map((line) => line.trimEnd())
+      .join('\n')
+      .trim();
+  }
+
+  function getOrderedPromptItemsFromStPreset(data) {
+    const prompts = Array.isArray(data?.prompts) ? data.prompts.filter((item) => item && typeof item === 'object') : [];
+    if (!prompts.length) return [];
+
+    const promptMap = new Map();
+    prompts.forEach((item, index) => {
+      const identifier = String(item.identifier || item.id || `prompt_${index}`).trim();
+      if (!identifier) return;
+      promptMap.set(identifier, item);
+    });
+
+    const promptOrder = Array.isArray(data?.prompt_order) ? data.prompt_order : [];
+    const firstOrder = promptOrder.find((entry) => entry && typeof entry === 'object' && Array.isArray(entry.order));
+    const orderedIdentifiers = Array.isArray(firstOrder?.order) ? firstOrder.order : [];
+
+    const orderedItems = [];
+    const seen = new Set();
+
+    orderedIdentifiers.forEach((entry) => {
+      const identifier = String(entry?.identifier || '').trim();
+      if (!identifier || seen.has(identifier)) return;
+      const prompt = promptMap.get(identifier);
+      if (!prompt) return;
+      const isEnabled = entry?.enabled !== false && prompt?.enabled !== false;
+      if (!isEnabled) return;
+      orderedItems.push(prompt);
+      seen.add(identifier);
+    });
+
+    prompts.forEach((prompt, index) => {
+      const identifier = String(prompt.identifier || prompt.id || `prompt_${index}`).trim();
+      if (!identifier || seen.has(identifier) || prompt?.enabled === false) return;
+      orderedItems.push(prompt);
+      seen.add(identifier);
+    });
+
+    return orderedItems;
+  }
+
+  function looksLikeRolePrompt(prompt) {
+    const haystack = [
+      prompt?.identifier,
+      prompt?.name,
+      prompt?.content,
+    ].map((value) => String(value || '').toLowerCase()).join('\n');
+
+    return /(role|replace|character replace|char replace|\u89d2\u8272|\u66ff\u6362)/.test(haystack);
+  }
+
+  function readStPromptRole(prompt) {
+    const role = String(prompt?.role || (prompt?.system_prompt ? 'system' : '')).trim().toLowerCase();
+    if (role === 'system' || role === 'user' || role === 'assistant') return role;
+    return 'system';
+  }
+
+  function importStPresetObject(data) {
+    const orderedPrompts = getOrderedPromptItemsFromStPreset(data);
+    if (!orderedPrompts.length) {
+      throw new Error(T.statusStPresetImportFailed);
+    }
+
+    const buckets = {
+      systemPrompt: [],
+      reversePrompt: [],
+      roleSystemPrompt: [],
+      roleReversePrompt: [],
+    };
+
+    orderedPrompts.forEach((prompt) => {
+      if (prompt?.marker || !String(prompt?.content || '').trim()) return;
+
+      const role = readStPromptRole(prompt);
+      const content = normalizeImportedPromptText(prompt.content);
+      if (!content) return;
+
+      const isRolePrompt = looksLikeRolePrompt(prompt);
+      if (role === 'user') {
+        buckets[isRolePrompt ? 'roleReversePrompt' : 'reversePrompt'].push(content);
+      } else if (role === 'system') {
+        buckets[isRolePrompt ? 'roleSystemPrompt' : 'systemPrompt'].push(content);
+      }
+    });
+
+    const imported = {
+      systemPrompt: normalizeImportedPromptText(buckets.systemPrompt.join('\n\n')),
+      reversePrompt: normalizeImportedPromptText(buckets.reversePrompt.join('\n\n')),
+      roleSystemPrompt: normalizeImportedPromptText(buckets.roleSystemPrompt.join('\n\n')),
+      roleReversePrompt: normalizeImportedPromptText(buckets.roleReversePrompt.join('\n\n')),
+    };
+
+    if (!imported.systemPrompt && !imported.reversePrompt && !imported.roleSystemPrompt && !imported.roleReversePrompt) {
+      throw new Error(T.statusStPresetImportFailed);
+    }
+
+    ui.settings.systemPrompt.value = imported.systemPrompt || ui.settings.systemPrompt.value || DEFAULT_SETTINGS.systemPrompt;
+    ui.settings.reversePrompt.value = imported.reversePrompt || ui.settings.reversePrompt.value || DEFAULT_SETTINGS.reversePrompt;
+    ui.settings.roleSystemPrompt.value = imported.roleSystemPrompt || ui.settings.roleSystemPrompt.value || DEFAULT_SETTINGS.roleSystemPrompt;
+    ui.settings.roleReversePrompt.value = imported.roleReversePrompt || ui.settings.roleReversePrompt.value || DEFAULT_SETTINGS.roleReversePrompt;
+    syncPromptPresetSelection();
+    autoResizeAllTextareas();
+    setStatus(T.statusStPresetImported, false);
+  }
+
+  function triggerStPresetImport() {
+    ui.settings.stPresetInput?.click();
+  }
+
+  async function handleStPresetImport(event) {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+
+    const [file] = Array.from(input.files || []);
+    input.value = '';
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text);
+      importStPresetObject(parsed);
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : T.statusStPresetImportFailed, true);
+    }
   }
 
   function renderPromptLibraryOptions() {
@@ -1488,6 +1743,7 @@
     ui.settings.endpoint.value = state.settings.endpoint;
     ui.settings.model.value = state.settings.model;
     ui.settings.apiKey.value = state.settings.apiKey;
+    ui.settings.promptPreset.value = detectPromptPresetId(state.settings);
     ui.settings.systemPrompt.value = state.settings.systemPrompt;
     ui.settings.reversePrompt.value = state.settings.reversePrompt;
     ui.settings.enableRoleReplaceMode.checked = Boolean(state.settings.enableRoleReplaceMode);
@@ -1507,16 +1763,24 @@
     ui.settings.defaultCodeFence.checked = Boolean(state.settings.defaultCodeFence);
     ui.settings.showFloatingBall.checked = Boolean(state.settings.showFloatingBall);
     updateFallbackSettingsVisibility();
+    updatePromptPresetUiState();
     requestAnimationFrame(() => autoResizeAllTextareas());
   }
 
   function readSettingsFromInputs() {
+    const promptPreset = detectPromptPresetId({
+      systemPrompt: ui.settings.systemPrompt.value,
+      reversePrompt: ui.settings.reversePrompt.value,
+      roleSystemPrompt: ui.settings.roleSystemPrompt.value,
+      roleReversePrompt: ui.settings.roleReversePrompt.value,
+    });
     return {
       providerPreset: ui.settings.providerPreset.value || DEFAULT_SETTINGS.providerPreset,
       protocol: ui.settings.protocol.value || DEFAULT_SETTINGS.protocol,
       endpoint: ui.settings.endpoint.value.trim() || DEFAULT_SETTINGS.endpoint,
       model: ui.settings.model.value.trim() || DEFAULT_SETTINGS.model,
       apiKey: ui.settings.apiKey.value.trim(),
+      promptPreset,
       systemPrompt: ui.settings.systemPrompt.value.trim() || DEFAULT_SETTINGS.systemPrompt,
       reversePrompt: ui.settings.reversePrompt.value.trim() || DEFAULT_SETTINGS.reversePrompt,
       enableRoleReplaceMode: Boolean(ui.settings.enableRoleReplaceMode.checked),
@@ -1663,6 +1927,16 @@
               <div class="nai-md3-section-title">${T.sectionPrompt}</div>
               <div class="nai-md3-section-note">${T.sectionPromptHint}</div>
             </div>
+            <div class="nai-md3-grid-2 nai-md3-library-row">
+              <div><label class="nai-md3-label">${T.promptPreset}</label><select class="nai-md3-input" data-field="promptPreset"></select></div>
+              <div class="nai-md3-library-action nai-md3-library-action-stack">
+                <button type="button" class="nai-md3-inline-action" data-action="apply-prompt-preset">${T.applyPromptPreset}</button>
+                <button type="button" class="nai-md3-inline-action" data-action="import-st-preset">${T.importStPreset}</button>
+              </div>
+            </div>
+            <div class="nai-md3-prompt-preset-note nai-hidden" data-field="promptPresetNote"></div>
+            <div class="nai-md3-prompt-preset-note">${T.stImportHint}</div>
+            <input class="nai-hidden" data-field="stPresetInput" type="file" accept=".json,application/json" />
             <label class="nai-md3-label">${T.systemPrompt}</label><textarea class="nai-md3-input" data-field="systemPrompt" rows="3"></textarea>
             <label class="nai-md3-label">${T.reversePrompt}</label><textarea class="nai-md3-input" data-field="reversePrompt" rows="3"></textarea>
             <label class="nai-md3-switch"><input data-field="enableRoleReplaceMode" type="checkbox" /><span>${T.roleMode}</span></label>
@@ -1744,6 +2018,9 @@
     ui.settings.model = root.querySelector('[data-field="model"]');
     ui.settings.modelList = root.querySelector('#nai-primary-model-list');
     ui.settings.apiKey = root.querySelector('[data-field="apiKey"]');
+    ui.settings.promptPreset = root.querySelector('[data-field="promptPreset"]');
+    ui.settings.promptPresetNote = root.querySelector('[data-field="promptPresetNote"]');
+    ui.settings.stPresetInput = root.querySelector('[data-field="stPresetInput"]');
     ui.settings.systemPrompt = root.querySelector('[data-field="systemPrompt"]');
     ui.settings.reversePrompt = root.querySelector('[data-field="reversePrompt"]');
     ui.settings.enableRoleReplaceMode = root.querySelector('[data-field="enableRoleReplaceMode"]');
@@ -1770,6 +2047,7 @@
     fillSelectOptions(ui.settings.themePreset, THEME_PRESETS);
     fillSelectOptions(ui.settings.fallbackProviderPreset, PROVIDER_PRESETS);
     fillSelectOptions(ui.settings.fallbackProtocol, PROTOCOL_OPTIONS);
+    renderPromptPresetOptions();
     renderPromptLibraryOptions();
 
     ui.settings.providerPreset.addEventListener('change', () => syncProviderFields('primary', true));
@@ -1778,6 +2056,11 @@
     ui.settings.themePreset.addEventListener('change', () => {
       state.settings.themePreset = ui.settings.themePreset.value || DEFAULT_SETTINGS.themePreset;
       applyThemePreset();
+    });
+    ui.settings.promptPreset.addEventListener('change', () => updatePromptPresetUiState());
+    ui.settings.stPresetInput.addEventListener('change', handleStPresetImport);
+    [ui.settings.systemPrompt, ui.settings.reversePrompt, ui.settings.roleSystemPrompt, ui.settings.roleReversePrompt].forEach((field) => {
+      field.addEventListener('input', () => syncPromptPresetSelection());
     });
 
     ui.fab.addEventListener('click', () => openPanel('reverse'));
@@ -1809,6 +2092,8 @@
       else if (action === 'fetch-fallback-models') await fetchModelsFor('fallback');
       else if (action === 'test-connection') await testConnection();
       else if (action === 'wrap-code') await wrapCurrentResult();
+      else if (action === 'apply-prompt-preset') applyPromptPresetValues(ui.settings.promptPreset?.value || '');
+      else if (action === 'import-st-preset') triggerStPresetImport();
       else if (action === 'apply-role-library') applyPromptLibraryToRolePrompt();
       else if (action === 'save-settings') await saveSettings();
       else if (action === 'clear-history') await clearHistory();
