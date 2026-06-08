@@ -73,7 +73,7 @@
     fallbackProtocol: '\u5907\u7528\u63a5\u53e3\u534f\u8bae',
     fallbackEndpoint: '\u5907\u7528 API Endpoint',
     fallbackModel: '\u5907\u7528\u6a21\u578b',
-    fallbackApiKey: '\u5907\u7528 API Key\uff08\u7559\u7a7a\u5219\u590d\u7528\u4e3b Key\uff09',
+    fallbackApiKey: '\u5907\u7528 API Key\uff08\u6309\u4f9b\u5e94\u5546\u4fdd\u5b58\uff09',
     themePreset: '\u989c\u8272\u9884\u8bbe',
     sendImageAsDataUrl: '\u53d1\u9001\u56fe\u7247\u5185\u5bb9\uff08\u5173\u95ed\u5219\u53d1\u9001\u539f\u59cb URL\uff09',
     showReverseEntry: '\u663e\u793a\u53cd\u63a8\u60ac\u6d6e\u5165\u53e3',
@@ -119,11 +119,271 @@
     endpoint: 'https://api.openai.com/v1/chat/completions',
     model: 'gpt-4.1-mini',
     apiKey: '',
-    systemPrompt: '\u4f60\u662f NovelAI \u56fe\u50cf\u63d0\u793a\u8bcd\u53cd\u63a8\u4e13\u5bb6\uff0c\u4e13\u7cbe V4+ \u52a8\u6f2b\u98ce\u683c\u751f\u6210\u6a21\u578b\u3002\u5f53\u7528\u6237\u63d0\u4f9b\u56fe\u50cf\u65f6\uff0c\u53ea\u8f93\u51fa\u5355\u4e2a\u7eaf\u82f1\u6587\u3001NovelAI-ready \u7684 prompt \u672c\u4f53\uff0c\u4e0d\u8981\u89e3\u91ca\uff0c\u4e0d\u8981\u6807\u9898\uff0c\u4e0d\u8981 TAGS\uff0c\u4e0d\u8981 PROMPT\uff0c\u4e0d\u8981 JSON\uff0c\u4e0d\u8981\u4ee3\u7801\u5757\u5916\u7684\u4efb\u4f55\u6587\u5b57\u3002\u63d0\u793a\u8bcd\u5fc5\u987b\u5c3d\u91cf\u4f7f\u7528 Danbooru \u98ce\u683c tag\uff0c\u591a\u8bcd tag \u4f7f\u7528\u4e0b\u5212\u7ebf\uff0c\u540c\u65f6\u5141\u8bb8\u5c11\u91cf\u81ea\u7136\u8bed\u8a00\u77ed\u8bed\u589e\u5f3a\u573a\u666f\u4e00\u81f4\u6027\u3002\u7edd\u5bf9\u4e0d\u8981\u6dfb\u52a0 masterpiece, best quality, very aesthetic, absurdres, highly detailed \u7b49\u8d28\u91cf\u589e\u5f3a\u8bcd\uff0c\u4e5f\u4e0d\u8981\u8f93\u51fa negative prompt\u3002',
-    reversePrompt: '\u8bf7\u5c06\u8fd9\u5f20\u56fe\u53cd\u63a8\u4e3a\u53ef\u76f4\u63a5\u7528\u4e8e NovelAI \u7684\u5355\u4e2a\u82f1\u6587 prompt\uff0c\u53ea\u8f93\u51fa prompt \u672c\u4f53\uff0c\u4e0d\u8981\u4efb\u4f55\u989d\u5916\u6587\u5b57\u3002\u987a\u5e8f\u5fc5\u987b\u4f18\u5148\u4e3a\uff1a\u6574\u4f53\u573a\u666f/\u6784\u56fe/\u4eba\u6570/\u706f\u5149 -> \u89d2\u8272\u6838\u5fc3\u7279\u5f81\uff08\u8d8a\u91cd\u8981\u8d8a\u9760\u524d\uff09\u3002\u5355\u89d2\u8272\u65f6\u8bf7\u7528\u6362\u884c\u5206\u4e3a 3-4 \u5c42\uff1a\u7b2c 1 \u884c\u5199 scene/composition/\u4eba\u6570\uff0c\u7b2c 2 \u884c\u5199\u53d1\u8272/\u53d1\u578b/\u77b3\u8272/\u8084\u4f53/\u7279\u5f81\uff0c\u7b2c 3 \u884c\u5199\u670d\u88c5\u4e0e\u914d\u9970\uff0c\u7b2c 4 \u884c\u5199\u52a8\u4f5c/\u8868\u60c5/\u573a\u666f/\u5149\u5f71/\u955c\u5934\u3002\u591a\u89d2\u8272\uff082-6\u4eba\uff09\u65f6\u5fc5\u987b\u4f7f\u7528 NovelAI V4+ \u7684 | \u5206\u9694\u7ed3\u6784\uff0c\u6574\u4e2a prompt \u4ee5\u6700\u540e\u4e00\u4e2a | \u7ed3\u5c3e\u3002\u53ef\u6df7\u5408 Danbooru \u7cbe\u786e tag \u548c\u77ed\u53e5\uff0c\u4f46\u4e0d\u8981\u51fa\u73b0\u4efb\u4f55 tag \u4ee5\u5916\u7684\u6807\u9898\u8bcd\u3002',
+    providerConnections: {},
+    systemPrompt: `You are an anime-style image-to-prompt converter for a platform that
+supports structured multi-character prompts.
+
+\u2550\u2550\u2550 OUTPUT FORMAT \u2550\u2550\u2550
+
+Single character:
+  Output one single-line prompt. No separators.
+
+Multiple characters:
+  Output using pipe syntax:
+  {base prompt} | {character 1 prompt} | {character 2 prompt} | ...
+
+  Base prompt contains: framing, shot type, camera angle,
+  background/setting, lighting, atmosphere, color scheme,
+  and any shared scene elements.
+
+  Each character prompt contains: that character's appearance
+  (hair, eyes, expression), outfit (top to bottom), pose,
+  and any interaction tags specific to them.
+
+  Character order: describe characters from left to right,
+  or foreground to background.
+
+\u2550\u2550\u2550 INTERACTION TAG SYNTAX \u2550\u2550\u2550
+
+When characters physically or visually interact, attach a directional
+prefix to the relevant action tag to indicate the role of each character
+in that action.
+
+The prefix indicates ACTION DIRECTION, not character identity or gender.
+There are exactly three valid prefixes - no others are permitted:
+
+  source#{action}  - this character is performing / initiating the action
+  target#{action}  - this character is receiving the action
+  mutual#{action}  - both characters perform the action on each other
+
+Usage:
+  One hugging the other:   char1: source#hug     |  char2: target#hug
+  Mutual hug:              char1: mutual#hug     |  char2: mutual#hug
+  Eye contact:             char1: mutual#eye_contact | char2: mutual#eye_contact
+  Grabbing collar:         char1: source#grabbing_collar
+                           char2: target#grabbing_collar
+
+CRITICAL:
+  - The prefix describes WHO IS DOING THE ACTION, not who the character is.
+  - Do NOT use gender, role, or identity as prefixes.
+  - The only valid prefixes are: source#, target#, mutual#
+  - Invalid examples (never output these):
+      female#hug, male#hug, girl#hug, char1#hug, left#hug, A#hug
+
+\u2550\u2550\u2550 TAG ORDER (per segment) \u2550\u2550\u2550
+
+Base prompt:
+  [shot type / framing] -> [character count] -> [setting/background] ->
+  [lighting direction + quality] -> [dominant color atmosphere]
+
+Per character:
+  [hair color, length, style] -> [eye color] -> [expression] ->
+  [outfit top to bottom] -> [pose / body orientation] ->
+  [interaction tags] -> [accessories / props]
+
+\u2550\u2550\u2550 NATURAL LANGUAGE RULES \u2550\u2550\u2550
+
+Use natural language phrases ONLY for:
+  - Complex limb placement where tag order is ambiguous
+    e.g., "right arm extended forward, left hand on hip"
+  - Spatial depth or overlap between characters or objects
+  - Lighting gradient or color direction
+    e.g., "warm rim light from the left"
+
+If an element is unclear or partially visible, qualify it:
+  e.g., "partially visible skirt", "possible earring"
+  Never invent or assert unclear elements.
+
+\u2550\u2550\u2550 PRIORITY ORDER \u2550\u2550\u2550
+
+1. Composition, framing, crop, camera angle, perspective
+2. Number of characters, their relative positions (left/right,
+   foreground/background), and physical interactions
+3. Pose, gesture, limb placement, body orientation (per character)
+4. Lighting direction, dominant colors, color relationships
+5. Core character traits: hair, eyes, expression
+6. Outfit structure, silhouette, layering
+7. Accessories, props, background details, art style if distinctive
+
+\u2550\u2550\u2550 STRICT PROHIBITIONS \u2550\u2550\u2550
+
+- Do not output quality tags or quality-related words.
+- Do not output explanations, titles, labels, bullet points,
+  JSON, or multiple versions.
+- Do not invent props, clothing parts, or effects not clearly visible.
+- Do not mix pipe syntax with any label or structural text
+  outside the segments.
+- Do not use the pipe character | for any purpose other than
+  separating base/character segments.`,
+    reversePrompt: `Analyze this image and output a structured English prompt for
+anime-style image generation.
+
+Step through internally before writing:
+1. Count characters and identify their positions and interactions.
+2. If multiple characters: plan base prompt vs. per-character split.
+3. Identify all physical/visual interactions between characters
+   and assign source#, target#, or mutual# prefixes to action tags.
+4. Work through priority order: composition -> character positions
+   -> poses -> lighting/color -> appearance -> outfit -> details.
+
+Output format:
+- Single character: one clean single-line prompt.
+- Multiple characters: base | char1 | char2 | ... (pipe-separated,
+  no labels, no extra text)
+
+Output only the final prompt. Nothing else.`,
     enableRoleReplaceMode: false,
-    roleSystemPrompt: '\u4f60\u662f NovelAI \u89d2\u8272\u66ff\u6362\u53cd\u63a8\u4e13\u5bb6\u3002\u4f60\u9700\u8981\u4fdd\u7559\u539f\u56fe\u7684\u6784\u56fe\u3001\u52a8\u4f5c\u3001\u955c\u5934\u3001\u670d\u88c5\u5c42\u7ea7\u3001\u573a\u666f\u3001\u5149\u5f71\u3001\u6c1b\u56f4\u4e0e\u753b\u98ce\uff0c\u53ea\u5c06\u4eba\u7269\u66ff\u6362\u4e3a\u76ee\u6807\u89d2\u8272\u8bbe\u5b9a\u3002\u6700\u7ec8\u53ea\u8f93\u51fa\u5355\u4e2a\u7eaf\u82f1\u6587 NovelAI-ready prompt \u672c\u4f53\uff0c\u4e0d\u8981\u89e3\u91ca\uff0c\u4e0d\u8981 TAGS\uff0c\u4e0d\u8981 PROMPT\uff0c\u4e0d\u8981 JSON\uff0c\u4e0d\u8981 negative prompt\uff0c\u4e0d\u8981\u4fdd\u7559\u539f\u89d2\u8272\u540d\u79f0\u3002',
-    roleReversePrompt: '\u8bf7\u5c06\u8fd9\u5f20\u56fe\u53cd\u63a8\u4e3a\u53ef\u76f4\u63a5\u7528\u4e8e NovelAI \u7684\u5355\u4e2a\u82f1\u6587 prompt\uff0c\u4f46\u8981\u5b8c\u6210\u89d2\u8272\u66ff\u6362\uff1a\u4fdd\u6301\u539f\u56fe\u7684 pose\u3001composition\u3001camera angle\u3001clothing structure\u3001scene\u3001lighting\u3001mood \u4e0e style\uff0c\u540c\u65f6\u5c06\u4eba\u7269\u66ff\u6362\u4e3a\u76ee\u6807\u89d2\u8272\u3002\u53ea\u8f93\u51fa prompt \u672c\u4f53\uff0c\u4e0d\u8981\u4efb\u4f55\u989d\u5916\u6587\u5b57\u3002\u5355\u89d2\u8272\u65f6\u7528\u6362\u884c\u5206\u5c42\u8f93\u51fa\uff0c\u591a\u89d2\u8272\u65f6\u4f7f\u7528 NovelAI V4+ \u7684 | \u7ed3\u6784\u5e76\u4ee5 | \u7ed3\u5c3e\u3002\u4f18\u5148\u4f7f\u7528 Danbooru \u7cbe\u786e tag\uff0c\u53ef\u6df7\u5408\u7b80\u77ed\u81ea\u7136\u8bed\u8a00\uff0c\u4f46\u4e0d\u8981\u51fa\u73b0\u4efb\u4f55\u6807\u9898\u6216\u6ce8\u91ca\u6587\u5b57\u3002',
+    roleSystemPrompt: `You are an anime-style image-to-prompt converter specialized in
+character-swap reconstruction.
+
+Your task:
+1. Accurately reconstruct the original image structure.
+2. Replace only the specified character(s) with the target character(s),
+   while preserving all non-identity visual information as faithfully
+   as possible.
+Output only the final prompt. No explanations, titles, JSON, labels,
+bullet points, quality tags, or multiple versions.
+
+\u2550\u2550\u2550 OUTPUT FORMAT \u2550\u2550\u2550
+
+Single character:
+  Output one single-line prompt.
+
+Multiple characters:
+  Output using pipe syntax:
+  {base prompt} | {character 1 prompt} | {character 2 prompt} | ...
+
+  Base prompt: framing, shot type, camera angle, background/setting,
+  lighting, atmosphere, color scheme, shared scene elements.
+
+  Each character prompt: that character's appearance, outfit, pose,
+  and interaction tags. Characters ordered left to right, or
+  foreground to background.
+
+  If only some characters are being swapped, non-swapped characters
+  are reconstructed as-is. Only the specified character slots receive
+  the target character's identity traits.
+
+\u2550\u2550\u2550 INTERACTION TAG SYNTAX \u2550\u2550\u2550
+
+When characters physically or visually interact, attach a directional
+prefix to the relevant action tag to indicate the role of each character
+in that action.
+
+The prefix indicates ACTION DIRECTION, not character identity or gender.
+There are exactly three valid prefixes - no others are permitted:
+
+  source#{action}  - this character is performing / initiating the action
+  target#{action}  - this character is receiving the action
+  mutual#{action}  - both characters perform the action on each other
+
+Usage:
+  One hugging the other:   char1: source#hug     |  char2: target#hug
+  Mutual hug:              char1: mutual#hug     |  char2: mutual#hug
+  Eye contact:             char1: mutual#eye_contact | char2: mutual#eye_contact
+  Grabbing collar:         char1: source#grabbing_collar
+                           char2: target#grabbing_collar
+
+CRITICAL:
+  - The prefix describes WHO IS DOING THE ACTION, not who the character is.
+  - Do NOT use gender, role, or identity as prefixes.
+  - The only valid prefixes are: source#, target#, mutual#
+  - Invalid examples (never output these):
+      female#hug, male#hug, girl#hug, char1#hug, left#hug, A#hug
+
+\u2550\u2550\u2550 SWAP BOUNDARY RULES \u2550\u2550\u2550
+
+REPLACE (identity layer - swap these):
+  - Hair color, length, and style
+  - Eye color
+  - Facial features and expression style
+  - Character-exclusive signature accessories
+    (e.g., unique hair ornaments, iconic props)
+
+PRESERVE (structure layer - do not change these):
+  - Pose, gesture, limb placement, body orientation
+  - Composition, framing, crop, camera angle, perspective
+  - Lighting direction, dominant colors, atmosphere
+  - Clothing structure and silhouette
+    (keep original clothing unless it directly conflicts with
+    the target character's identity; if conflict exists,
+    adjust the minimum necessary - do not redesign the outfit)
+  - Background, environment, scene elements
+  - Number of characters and their relative positions
+  - Interaction structure and roles between characters
+
+When original clothing conflicts with the target character:
+  Prioritize pose, composition, and color logic.
+  Adjust only the minimum identity-critical elements.
+  Do not redesign the image around the target character.
+
+\u2550\u2550\u2550 TAG ORDER (per segment) \u2550\u2550\u2550
+
+Base prompt:
+  [shot type / framing] -> [character count] -> [setting/background] ->
+  [lighting direction + quality] -> [dominant color atmosphere]
+
+Per character:
+  [hair color, length, style] -> [eye color] -> [expression] ->
+  [outfit top to bottom] -> [pose / body orientation] ->
+  [interaction tags] -> [accessories / props]
+
+\u2550\u2550\u2550 PRIORITY ORDER \u2550\u2550\u2550
+
+1. Overall composition, framing, crop, camera angle, perspective
+2. Number of characters, relative positions, and interaction structure
+3. Pose, gesture, limb placement, body orientation (per character)
+4. Lighting direction, dominant colors, color relationships
+5. Clothing structure, silhouette, layering, accessory placement
+6. Target character identity and defining traits
+7. Smaller visual details
+
+\u2550\u2550\u2550 NATURAL LANGUAGE RULES \u2550\u2550\u2550
+
+Use natural language ONLY for:
+  - Complex limb placement where tag order is ambiguous
+  - Spatial depth or overlap between characters or objects
+  - Lighting gradient or color direction
+  - Multi-character spatial relationships
+
+If an element is unclear or partially visible, qualify it:
+  e.g., "partially visible skirt", "possible earring"
+  Never invent or assert unclear elements.
+
+\u2550\u2550\u2550 STRICT PROHIBITIONS \u2550\u2550\u2550
+
+- Do not redesign the image around the target character.
+- Do not invent new poses, actions, props, clothing pieces,
+  background elements, or color schemes.
+- Do not simplify critical pose or composition info into vague tags.
+- Do not output quality tags or quality-related words.
+- Do not use | for any purpose other than segment separation.`,
+    roleReversePrompt: `Analyze this image and output a structured English prompt for
+anime-style image generation with character swap.
+
+Work through these steps internally before writing:
+
+1. Reconstruct the original image structure:
+   composition, framing, camera angle, character count and positions,
+   poses and interactions, lighting, color scheme, clothing, background.
+
+2. Identify which character(s) to replace and which to preserve.
+   Determine each character's interaction role (source / target / mutual)
+   and preserve those roles exactly.
+
+3. Apply the target character's identity only to the specified slot(s):
+   replace hair, eyes, and identity-exclusive traits.
+   Keep all structural elements - pose, clothing silhouette,
+   lighting, composition - unchanged.
+   If clothing conflicts with the target character's identity,
+   adjust the minimum necessary; do not redesign.
+
+4. Choose output format:
+   - Single character -> one clean single-line prompt.
+   - Multiple characters -> base | char1 | char2 | ...
+     (pipe-separated, no labels, no extra text)
+
+Output only the final prompt. Nothing else.`,
     rolePrompt: '',
     defaultCodeFence: false,
     temperature: 0.4,
@@ -134,6 +394,7 @@
     fallbackEndpoint: 'https://api.x.ai/v1/responses',
     fallbackModel: 'grok-4-fast-reasoning',
     fallbackApiKey: '',
+    fallbackProviderConnections: {},
     themePreset: 'sunrise',
     sendImageAsDataUrl: true,
     showReverseFloatingBall: true,
@@ -171,18 +432,22 @@
     systemPrompt: [
       '\u4f60\u662f\u56fe\u50cf\u53cd\u63a8\u52a9\u624b\u3002\u8bf7\u5206\u6790\u56fe\u7247\u5e76\u7ed9\u51fa\u9ad8\u8d28\u91cf\u6807\u7b7e\uff0c\u4ee5\u53ca\u4e00\u6761\u53ef\u76f4\u63a5\u7528\u4e8e\u751f\u6210\u7684\u7cbe\u7b80\u63d0\u793a\u8bcd\u3002',
       '\u4f60\u662f NovelAI \u56fe\u50cf\u53cd\u63a8\u52a9\u624b\u3002\u4efb\u52a1\u662f\u5c06\u56fe\u50cf\u5185\u5bb9\u8f6c\u6362\u4e3a\u53ef\u76f4\u63a5\u7528\u4e8e NovelAI \u751f\u56fe\u7684 Danbooru \u98ce\u683c\u63d0\u793a\u8bcd\u3002\u8bf7\u4e25\u683c\u4f7f\u7528\u82f1\u6587 tag\uff0c\u5c3d\u91cf\u63a5\u8fd1 Danbooru \u5e38\u7528\u5199\u6cd5\uff0c\u591a\u8bcd tag \u4f7f\u7528\u4e0b\u5212\u7ebf\uff0c\u5404 tag \u4e4b\u95f4\u7528\u82f1\u6587\u9017\u53f7+\u7a7a\u683c\u5206\u9694\u3002\u4e0d\u8981\u5199\u89e3\u91ca\uff0c\u4e0d\u8981\u5199\u81ea\u7136\u8bed\u8a00\u6bb5\u843d\uff0c\u4e0d\u8981\u8f93\u51fa JSON \u6216 Markdown \u6807\u9898\u3002\u82e5\u65e0\u6cd5\u786e\u8ba4\u7684\u7ec6\u8282\uff0c\u5b81\u53ef\u7701\u7565\u4e5f\u4e0d\u8981\u81c6\u9020\u3002',
+      '\u4f60\u662f NovelAI \u56fe\u50cf\u63d0\u793a\u8bcd\u53cd\u63a8\u4e13\u5bb6\uff0c\u4e13\u7cbe V4+ \u52a8\u6f2b\u98ce\u683c\u751f\u6210\u6a21\u578b\u3002\u5f53\u7528\u6237\u63d0\u4f9b\u56fe\u50cf\u65f6\uff0c\u53ea\u8f93\u51fa\u5355\u4e2a\u7eaf\u82f1\u6587\u3001NovelAI-ready \u7684 prompt \u672c\u4f53\uff0c\u4e0d\u8981\u89e3\u91ca\uff0c\u4e0d\u8981\u6807\u9898\uff0c\u4e0d\u8981 TAGS\uff0c\u4e0d\u8981 PROMPT\uff0c\u4e0d\u8981 JSON\uff0c\u4e0d\u8981\u4ee3\u7801\u5757\u5916\u7684\u4efb\u4f55\u6587\u5b57\u3002\u63d0\u793a\u8bcd\u5fc5\u987b\u5c3d\u91cf\u4f7f\u7528 Danbooru \u98ce\u683c tag\uff0c\u591a\u8bcd tag \u4f7f\u7528\u4e0b\u5212\u7ebf\uff0c\u540c\u65f6\u5141\u8bb8\u5c11\u91cf\u81ea\u7136\u8bed\u8a00\u77ed\u8bed\u589e\u5f3a\u573a\u666f\u4e00\u81f4\u6027\u3002\u7edd\u5bf9\u4e0d\u8981\u6dfb\u52a0 masterpiece, best quality, very aesthetic, absurdres, highly detailed \u7b49\u8d28\u91cf\u589e\u5f3a\u8bcd\uff0c\u4e5f\u4e0d\u8981\u8f93\u51fa negative prompt\u3002',
     ],
     reversePrompt: [
       '\u8bf7\u53cd\u63a8\u8fd9\u5f20\u56fe\uff0c\u8f93\u51fa\uff1a1) \u5173\u952e\u6807\u7b7e 2) \u4e00\u6761\u53ef\u76f4\u63a5\u4f7f\u7528\u7684\u6700\u7ec8\u63d0\u793a\u8bcd\u3002',
       '\u8bf7\u5206\u6790\u8fd9\u5f20\u56fe\uff0c\u5e76\u4e25\u683c\u6309\u7167\u4ee5\u4e0b\u683c\u5f0f\u8f93\u51fa\uff1a\\nTAGS: <\u4e00\u884c\u82f1\u6587 Danbooru tags\uff0c\u9017\u53f7\u5206\u9694\uff0c\u53ef\u5305\u542b 1girl/1boy\uff0chair\uff0ceyes\uff0cclothes\uff0cpose\uff0ccomposition\uff0cbackground\uff0cstyle\uff0cquality \u7b49\u6807\u7b7e>\\nPROMPT: <\u4e00\u884c\u53ef\u76f4\u63a5\u7528\u4e8e NovelAI \u7684\u6700\u7ec8 prompt\uff0c\u4ecd\u7136\u5168\u90e8\u4f7f\u7528\u82f1\u6587 Danbooru tags\uff0c\u6309\u4e3b\u4f53 -> \u5916\u89c2 -> \u670d\u88c5 -> \u52a8\u4f5c -> \u955c\u5934/\u6784\u56fe -> \u573a\u666f -> \u753b\u98ce/\u753b\u8d28 \u6392\u5e8f>\\n\u8981\u6c42\uff1a\u4f18\u5148\u4f7f\u7528 NovelAI \u5e38\u7528\u6807\u7b7e\uff0c\u907f\u514d\u5197\u4f59\u91cd\u590d tag\uff0c\u4e0d\u8981\u8f93\u51fa negative prompt\uff0c\u4e0d\u8981\u9644\u52a0\u989d\u5916\u8bf4\u660e\u3002',
+      '\u8bf7\u5c06\u8fd9\u5f20\u56fe\u53cd\u63a8\u4e3a\u53ef\u76f4\u63a5\u7528\u4e8e NovelAI \u7684\u5355\u4e2a\u82f1\u6587 prompt\uff0c\u53ea\u8f93\u51fa prompt \u672c\u4f53\uff0c\u4e0d\u8981\u4efb\u4f55\u989d\u5916\u6587\u5b57\u3002\u987a\u5e8f\u5fc5\u987b\u4f18\u5148\u4e3a\uff1a\u6574\u4f53\u573a\u666f/\u6784\u56fe/\u4eba\u6570/\u706f\u5149 -> \u89d2\u8272\u6838\u5fc3\u7279\u5f81\uff08\u8d8a\u91cd\u8981\u8d8a\u9760\u524d\uff09\u3002\u5355\u89d2\u8272\u65f6\u8bf7\u7528\u6362\u884c\u5206\u4e3a 3-4 \u5c42\uff1a\u7b2c 1 \u884c\u5199 scene/composition/\u4eba\u6570\uff0c\u7b2c 2 \u884c\u5199\u53d1\u8272/\u53d1\u578b/\u77b3\u8272/\u8084\u4f53/\u7279\u5f81\uff0c\u7b2c 3 \u884c\u5199\u670d\u88c5\u4e0e\u914d\u9970\uff0c\u7b2c 4 \u884c\u5199\u52a8\u4f5c/\u8868\u60c5/\u573a\u666f/\u5149\u5f71/\u955c\u5934\u3002\u591a\u89d2\u8272\uff082-6\u4eba\uff09\u65f6\u5fc5\u987b\u4f7f\u7528 NovelAI V4+ \u7684 | \u5206\u9694\u7ed3\u6784\uff0c\u6574\u4e2a prompt \u4ee5\u6700\u540e\u4e00\u4e2a | \u7ed3\u5c3e\u3002\u53ef\u6df7\u5408 Danbooru \u7cbe\u786e tag \u548c\u77ed\u53e5\uff0c\u4f46\u4e0d\u8981\u51fa\u73b0\u4efb\u4f55 tag \u4ee5\u5916\u7684\u6807\u9898\u8bcd\u3002',
     ],
     roleSystemPrompt: [
       '\u4f60\u662f\u89d2\u8272\u66ff\u6362\u53cd\u63a8\u52a9\u624b\u3002\u8bf7\u57fa\u4e8e\u56fe\u50cf\u5185\u5bb9\u751f\u6210\u6807\u7b7e\u4e0e\u63d0\u793a\u8bcd\uff0c\u5e76\u5c06\u89d2\u8272\u66ff\u6362\u4e3a\u76ee\u6807\u89d2\u8272\u8bbe\u5b9a\u3002',
       '\u4f60\u662f NovelAI \u89d2\u8272\u66ff\u6362\u53cd\u63a8\u52a9\u624b\u3002\u4f60\u9700\u8981\u5148\u8bc6\u522b\u56fe\u50cf\u7684\u6784\u56fe\u3001\u59ff\u52bf\u3001\u670d\u88c5\u5c42\u7ea7\u3001\u955c\u5934\u3001\u573a\u666f\u3001\u6c1b\u56f4\u4e0e\u753b\u98ce\uff0c\u518d\u5c06\u4eba\u7269\u66ff\u6362\u4e3a\u76ee\u6807\u89d2\u8272\u3002\u8f93\u51fa\u5fc5\u987b\u662f\u53ef\u76f4\u63a5\u7528\u4e8e NovelAI \u7684\u82f1\u6587 Danbooru tags\uff0c\u4e0d\u8981\u89e3\u91ca\uff0c\u4e0d\u8981\u81ea\u7136\u8bed\u8a00\u6bb5\u843d\uff0c\u4e0d\u8981\u4fdd\u7559\u539f\u89d2\u8272\u7684\u8eab\u4efd\u540d\u79f0\u3002',
+      '\u4f60\u662f NovelAI \u89d2\u8272\u66ff\u6362\u53cd\u63a8\u4e13\u5bb6\u3002\u4f60\u9700\u8981\u4fdd\u7559\u539f\u56fe\u7684\u6784\u56fe\u3001\u52a8\u4f5c\u3001\u955c\u5934\u3001\u670d\u88c5\u5c42\u7ea7\u3001\u573a\u666f\u3001\u5149\u5f71\u3001\u6c1b\u56f4\u4e0e\u753b\u98ce\uff0c\u53ea\u5c06\u4eba\u7269\u66ff\u6362\u4e3a\u76ee\u6807\u89d2\u8272\u8bbe\u5b9a\u3002\u6700\u7ec8\u53ea\u8f93\u51fa\u5355\u4e2a\u7eaf\u82f1\u6587 NovelAI-ready prompt \u672c\u4f53\uff0c\u4e0d\u8981\u89e3\u91ca\uff0c\u4e0d\u8981 TAGS\uff0c\u4e0d\u8981 PROMPT\uff0c\u4e0d\u8981 JSON\uff0c\u4e0d\u8981 negative prompt\uff0c\u4e0d\u8981\u4fdd\u7559\u539f\u89d2\u8272\u540d\u79f0\u3002',
     ],
     roleReversePrompt: [
       '\u8bf7\u5148\u5206\u6790\u56fe\u50cf\uff0c\u7136\u540e\u8f93\u51fa\uff1a1) \u9ad8\u8d28\u91cf\u751f\u56fe\u6807\u7b7e 2) \u4e00\u6761\u5df2\u5b8c\u6210\u89d2\u8272\u66ff\u6362\u7684\u6700\u7ec8\u63d0\u793a\u8bcd\u3002',
       '\u8bf7\u5206\u6790\u8fd9\u5f20\u56fe\uff0c\u4fdd\u6301\u539f\u56fe\u7684 pose\u3001composition\u3001camera angle\u3001clothing structure\u3001scene\u3001lighting\u3001mood \u4e0e style\uff0c\u4f46\u5c06\u4eba\u7269\u66ff\u6362\u4e3a\u76ee\u6807\u89d2\u8272\u8bbe\u5b9a\u3002\u4e25\u683c\u6309\u7167\u4ee5\u4e0b\u683c\u5f0f\u8f93\u51fa\uff1a\\nTAGS: <\u4e00\u884c\u82f1\u6587 Danbooru tags\uff0c\u9017\u53f7\u5206\u9694\uff0c\u5df2\u5b8c\u6210\u89d2\u8272\u66ff\u6362>\\nPROMPT: <\u4e00\u884c\u53ef\u76f4\u63a5\u7528\u4e8e NovelAI \u7684\u6700\u7ec8 prompt\uff0c\u4ecd\u7136\u5168\u90e8\u4f7f\u7528\u82f1\u6587 Danbooru tags\uff0c\u4f18\u5148\u4fdd\u7559\u539f\u56fe\u7684\u89c6\u89c9\u8981\u7d20>\\n\u8981\u6c42\uff1a\u4e0d\u8981\u4fdd\u7559\u539f\u89d2\u8272\u59d3\u540d\uff0c\u4e0d\u8981\u8f93\u51fa\u89e3\u91ca\uff0c\u4e0d\u8981\u8f93\u51fa negative prompt\u3002',
+      '\u8bf7\u5c06\u8fd9\u5f20\u56fe\u53cd\u63a8\u4e3a\u53ef\u76f4\u63a5\u7528\u4e8e NovelAI \u7684\u5355\u4e2a\u82f1\u6587 prompt\uff0c\u4f46\u8981\u5b8c\u6210\u89d2\u8272\u66ff\u6362\uff1a\u4fdd\u6301\u539f\u56fe\u7684 pose\u3001composition\u3001camera angle\u3001clothing structure\u3001scene\u3001lighting\u3001mood \u4e0e style\uff0c\u540c\u65f6\u5c06\u4eba\u7269\u66ff\u6362\u4e3a\u76ee\u6807\u89d2\u8272\u3002\u53ea\u8f93\u51fa prompt \u672c\u4f53\uff0c\u4e0d\u8981\u4efb\u4f55\u989d\u5916\u6587\u5b57\u3002\u5355\u89d2\u8272\u65f6\u7528\u6362\u884c\u5206\u5c42\u8f93\u51fa\uff0c\u591a\u89d2\u8272\u65f6\u4f7f\u7528 NovelAI V4+ \u7684 | \u7ed3\u6784\u5e76\u4ee5 | \u7ed3\u5c3e\u3002\u4f18\u5148\u4f7f\u7528 Danbooru \u7cbe\u786e tag\uff0c\u53ef\u6df7\u5408\u7b80\u77ed\u81ea\u7136\u8bed\u8a00\uff0c\u4f46\u4e0d\u8981\u51fa\u73b0\u4efb\u4f55\u6807\u9898\u6216\u6ce8\u91ca\u6587\u5b57\u3002',
     ],
   };
   const state = {
@@ -257,6 +522,9 @@
   function upgradePromptSettings(settings) {
     const next = { ...settings };
 
+    next.providerConnections = normalizeProviderConnections(next.providerConnections);
+    next.fallbackProviderConnections = normalizeProviderConnections(next.fallbackProviderConnections);
+
     if (typeof next.showReverseFloatingBall !== 'boolean') {
       next.showReverseFloatingBall = typeof next.showFloatingBall === 'boolean'
         ? next.showFloatingBall
@@ -284,6 +552,19 @@
     if (!next.roleReversePrompt || LEGACY_DEFAULT_PROMPTS.roleReversePrompt.includes(next.roleReversePrompt)) {
       next.roleReversePrompt = DEFAULT_SETTINGS.roleReversePrompt;
     }
+
+    next.providerConnections = rememberProviderConnection(next.providerConnections, next.providerPreset, {
+      protocol: next.protocol,
+      endpoint: next.endpoint,
+      model: next.model,
+      apiKey: next.apiKey,
+    });
+    next.fallbackProviderConnections = rememberProviderConnection(next.fallbackProviderConnections, next.fallbackProviderPreset, {
+      protocol: next.fallbackProtocol,
+      endpoint: next.fallbackEndpoint,
+      model: next.fallbackModel,
+      apiKey: next.fallbackApiKey,
+    });
 
     return next;
   }
@@ -1146,6 +1427,48 @@
       .join('');
   }
 
+  function normalizeProviderConnections(connections) {
+    if (!connections || typeof connections !== 'object' || Array.isArray(connections)) return {};
+
+    return Object.fromEntries(
+      Object.entries(connections)
+        .filter(([providerId, value]) => providerId && value && typeof value === 'object')
+        .map(([providerId, value]) => [providerId, {
+          protocol: String(value.protocol || ''),
+          endpoint: String(value.endpoint || ''),
+          model: String(value.model || ''),
+          apiKey: String(value.apiKey || ''),
+        }])
+    );
+  }
+
+  function rememberProviderConnection(connections, providerId, connection) {
+    if (!providerId) return normalizeProviderConnections(connections);
+    return {
+      ...normalizeProviderConnections(connections),
+      [providerId]: {
+        protocol: String(connection?.protocol || ''),
+        endpoint: String(connection?.endpoint || ''),
+        model: String(connection?.model || ''),
+        apiKey: String(connection?.apiKey || ''),
+      },
+    };
+  }
+
+  function getProviderConnection(connections, providerId) {
+    const preset = getProviderPresetById(providerId);
+    const normalized = normalizeProviderConnections(connections);
+    const stored = normalized[providerId] || {};
+    const hasStored = Object.prototype.hasOwnProperty.call(normalized, providerId);
+
+    return {
+      protocol: hasStored ? stored.protocol : (preset.protocol || DEFAULT_SETTINGS.protocol),
+      endpoint: hasStored ? stored.endpoint : (preset.endpoint || ''),
+      model: hasStored ? stored.model : (preset.defaultModel || ''),
+      apiKey: hasStored ? stored.apiKey : '',
+    };
+  }
+
   function renderPromptLibraryOptions() {
     const selects = [ui.settings.roleLibrarySelect, ui.library.roleLibrarySelect].filter(Boolean);
     if (!selects.length) return;
@@ -1457,48 +1780,69 @@
     });
   }
 
-  function syncProviderFields(kind, forceModel) {
+  function getConnectionFields(uiGroup, kind) {
     const isFallback = kind === 'fallback';
-    const presetField = isFallback ? ui.settings.fallbackProviderPreset : ui.settings.providerPreset;
-    const protocolField = isFallback ? ui.settings.fallbackProtocol : ui.settings.protocol;
-    const endpointField = isFallback ? ui.settings.fallbackEndpoint : ui.settings.endpoint;
-    const modelField = isFallback ? ui.settings.fallbackModel : ui.settings.model;
-    const preset = getProviderPresetById(presetField.value);
-
-    if (preset.protocol) {
-      protocolField.value = preset.protocol;
-    }
-
-    if (preset.endpoint || preset.id === 'custom') {
-      endpointField.value = preset.endpoint;
-    }
-
-    if (forceModel || !modelField.value.trim() || preset.id !== 'custom') {
-      modelField.value = preset.defaultModel || modelField.value;
-    }
+    return {
+      presetField: isFallback ? uiGroup.fallbackProviderPreset : uiGroup.providerPreset,
+      protocolField: isFallback ? uiGroup.fallbackProtocol : uiGroup.protocol,
+      endpointField: isFallback ? uiGroup.fallbackEndpoint : uiGroup.endpoint,
+      modelField: isFallback ? uiGroup.fallbackModel : uiGroup.model,
+      apiKeyField: isFallback ? uiGroup.fallbackApiKey : uiGroup.apiKey,
+    };
   }
 
-  function syncLibraryProviderFields(kind, forceModel) {
-    const isFallback = kind === 'fallback';
-    const presetField = isFallback ? ui.library.fallbackProviderPreset : ui.library.providerPreset;
-    const protocolField = isFallback ? ui.library.fallbackProtocol : ui.library.protocol;
-    const endpointField = isFallback ? ui.library.fallbackEndpoint : ui.library.endpoint;
-    const modelField = isFallback ? ui.library.fallbackModel : ui.library.model;
-    if (!presetField || !protocolField || !endpointField || !modelField) return;
+  function readProviderConnectionFromFields(fields) {
+    return {
+      protocol: fields.protocolField?.value || '',
+      endpoint: fields.endpointField?.value.trim() || '',
+      model: fields.modelField?.value.trim() || '',
+      apiKey: fields.apiKeyField?.value.trim() || '',
+    };
+  }
 
-    const preset = getProviderPresetById(presetField.value);
+  function applyProviderConnectionToFields(fields, connection) {
+    if (fields.protocolField) fields.protocolField.value = connection.protocol || DEFAULT_SETTINGS.protocol;
+    if (fields.endpointField) fields.endpointField.value = connection.endpoint || '';
+    if (fields.modelField) fields.modelField.value = connection.model || '';
+    if (fields.apiKeyField) fields.apiKeyField.value = connection.apiKey || '';
+  }
 
-    if (preset.protocol) {
-      protocolField.value = preset.protocol;
+  function syncProviderFieldsForGroup(uiGroup, kind, connectionKey) {
+    const fields = getConnectionFields(uiGroup, kind);
+    if (!fields.presetField || !fields.protocolField || !fields.endpointField || !fields.modelField || !fields.apiKeyField) return;
+
+    const previousProvider = fields.presetField.dataset.currentProvider || fields.presetField.value;
+    const nextProvider = fields.presetField.value;
+    const previousConnections = normalizeProviderConnections(state.settings[connectionKey]);
+    const nextConnections = rememberProviderConnection(previousConnections, previousProvider, readProviderConnectionFromFields(fields));
+    const nextConnection = getProviderConnection(nextConnections, nextProvider);
+
+    state.settings[connectionKey] = nextConnections;
+    applyProviderConnectionToFields(fields, nextConnection);
+    fields.presetField.dataset.currentProvider = nextProvider;
+
+    if (connectionKey === 'fallbackProviderConnections') {
+      state.settings.fallbackProviderPreset = nextProvider;
+      state.settings.fallbackProtocol = nextConnection.protocol;
+      state.settings.fallbackEndpoint = nextConnection.endpoint;
+      state.settings.fallbackModel = nextConnection.model;
+      state.settings.fallbackApiKey = nextConnection.apiKey;
+      return;
     }
 
-    if (preset.endpoint || preset.id === 'custom') {
-      endpointField.value = preset.endpoint;
-    }
+    state.settings.providerPreset = nextProvider;
+    state.settings.protocol = nextConnection.protocol;
+    state.settings.endpoint = nextConnection.endpoint;
+    state.settings.model = nextConnection.model;
+    state.settings.apiKey = nextConnection.apiKey;
+  }
 
-    if (forceModel || !modelField.value.trim() || preset.id !== 'custom') {
-      modelField.value = preset.defaultModel || modelField.value;
-    }
+  function syncProviderFields(kind) {
+    syncProviderFieldsForGroup(ui.settings, kind, kind === 'fallback' ? 'fallbackProviderConnections' : 'providerConnections');
+  }
+
+  function syncLibraryProviderFields(kind) {
+    syncProviderFieldsForGroup(ui.library, kind, kind === 'fallback' ? 'fallbackProviderConnections' : 'providerConnections');
   }
 
   function buildRequestConfig(target, messages) {
@@ -1530,14 +1874,13 @@
     }, messages);
   }
 
-  function buildFallbackConfig(messages, primaryApiKey) {
+  function buildFallbackConfig(messages) {
     if (!state.settings.enableFallbackModel) return null;
-    const fallbackKey = (state.settings.fallbackApiKey || '').trim() || primaryApiKey || '';
     return buildRequestConfig({
       providerPreset: state.settings.fallbackProviderPreset,
       protocol: state.settings.fallbackProtocol,
       endpoint: state.settings.fallbackEndpoint,
-      apiKey: fallbackKey,
+      apiKey: state.settings.fallbackApiKey,
       model: state.settings.fallbackModel,
     }, messages);
   }
@@ -1573,7 +1916,7 @@
       return;
     }
 
-    const fallbackConfig = buildFallbackConfig(testMessages, primaryConfig.apiKey);
+    const fallbackConfig = buildFallbackConfig(testMessages);
     if (state.settings.enableFallbackModel && !hasCompleteModelConfig(fallbackConfig)) {
       setStatus(T.statusNeedFallbackConfig, true);
       openPanel('settings');
@@ -1621,7 +1964,7 @@
       providerId: isFallback ? ui.settings.fallbackProviderPreset.value : ui.settings.providerPreset.value,
       protocol: isFallback ? ui.settings.fallbackProtocol.value : ui.settings.protocol.value,
       endpoint: (isFallback ? ui.settings.fallbackEndpoint.value : ui.settings.endpoint.value).trim(),
-      apiKey: ((isFallback ? ui.settings.fallbackApiKey.value : ui.settings.apiKey.value) || ui.settings.apiKey.value).trim(),
+      apiKey: (isFallback ? ui.settings.fallbackApiKey.value : ui.settings.apiKey.value).trim(),
     };
   }
 
@@ -1631,7 +1974,7 @@
       providerId: isFallback ? ui.library.fallbackProviderPreset?.value : ui.library.providerPreset?.value,
       protocol: isFallback ? ui.library.fallbackProtocol?.value : ui.library.protocol?.value,
       endpoint: String(isFallback ? ui.library.fallbackEndpoint?.value || '' : ui.library.endpoint?.value || '').trim(),
-      apiKey: String((isFallback ? ui.library.fallbackApiKey?.value : ui.library.apiKey?.value) || ui.library.apiKey?.value || '').trim(),
+      apiKey: String(isFallback ? ui.library.fallbackApiKey?.value || '' : ui.library.apiKey?.value || '').trim(),
     };
   }
 
@@ -1872,7 +2215,7 @@
 
     let fallbackConfig = null;
     if (state.settings.enableFallbackModel) {
-      const candidate = buildFallbackConfig(messages, primaryConfig.apiKey);
+      const candidate = buildFallbackConfig(messages);
       if (hasCompleteModelConfig(candidate)) {
         fallbackConfig = candidate;
       }
@@ -2099,6 +2442,7 @@
 
   function applySettingsToInputs() {
     ui.settings.providerPreset.value = state.settings.providerPreset;
+    ui.settings.providerPreset.dataset.currentProvider = state.settings.providerPreset;
     ui.settings.protocol.value = state.settings.protocol;
     ui.settings.endpoint.value = state.settings.endpoint;
     ui.settings.model.value = state.settings.model;
@@ -2113,6 +2457,7 @@
     ui.settings.maxTokens.value = String(state.settings.maxTokens);
     ui.settings.enableFallbackModel.checked = Boolean(state.settings.enableFallbackModel);
     ui.settings.fallbackProviderPreset.value = state.settings.fallbackProviderPreset;
+    ui.settings.fallbackProviderPreset.dataset.currentProvider = state.settings.fallbackProviderPreset;
     ui.settings.fallbackProtocol.value = state.settings.fallbackProtocol;
     ui.settings.fallbackEndpoint.value = state.settings.fallbackEndpoint;
     ui.settings.fallbackModel.value = state.settings.fallbackModel;
@@ -2153,6 +2498,12 @@
       if (!ui.library[key]) return;
       ui.library[key].value = String(state.settings[settingKey] ?? DEFAULT_SETTINGS[settingKey] ?? '');
     });
+    if (ui.library.providerPreset) {
+      ui.library.providerPreset.dataset.currentProvider = state.settings.providerPreset;
+    }
+    if (ui.library.fallbackProviderPreset) {
+      ui.library.fallbackProviderPreset.dataset.currentProvider = state.settings.fallbackProviderPreset;
+    }
 
     const checks = {
       enableRoleReplaceMode: 'enableRoleReplaceMode',
@@ -2171,12 +2522,18 @@
   }
 
   function readLibrarySettingsFromInputs() {
+    const providerPreset = ui.library.providerPreset?.value || DEFAULT_SETTINGS.providerPreset;
+    const fallbackProviderPreset = ui.library.fallbackProviderPreset?.value || DEFAULT_SETTINGS.fallbackProviderPreset;
+    const primaryConnection = readProviderConnectionFromFields(getConnectionFields(ui.library, 'primary'));
+    const fallbackConnection = readProviderConnectionFromFields(getConnectionFields(ui.library, 'fallback'));
+
     return {
-      providerPreset: ui.library.providerPreset?.value || DEFAULT_SETTINGS.providerPreset,
-      protocol: ui.library.protocol?.value || DEFAULT_SETTINGS.protocol,
-      endpoint: ui.library.endpoint?.value.trim() || DEFAULT_SETTINGS.endpoint,
-      model: ui.library.model?.value.trim() || DEFAULT_SETTINGS.model,
-      apiKey: ui.library.apiKey?.value.trim() || '',
+      providerPreset,
+      protocol: primaryConnection.protocol || DEFAULT_SETTINGS.protocol,
+      endpoint: primaryConnection.endpoint,
+      model: primaryConnection.model,
+      apiKey: primaryConnection.apiKey,
+      providerConnections: rememberProviderConnection(state.settings.providerConnections, providerPreset, primaryConnection),
       systemPrompt: ui.library.systemPrompt?.value.trim() || DEFAULT_SETTINGS.systemPrompt,
       reversePrompt: ui.library.reversePrompt?.value.trim() || DEFAULT_SETTINGS.reversePrompt,
       enableRoleReplaceMode: Boolean(ui.library.enableRoleReplaceMode?.checked),
@@ -2187,11 +2544,12 @@
       temperature: Number(ui.library.temperature?.value) || DEFAULT_SETTINGS.temperature,
       maxTokens: Number(ui.library.maxTokens?.value) || DEFAULT_SETTINGS.maxTokens,
       enableFallbackModel: Boolean(ui.library.enableFallbackModel?.checked),
-      fallbackProviderPreset: ui.library.fallbackProviderPreset?.value || DEFAULT_SETTINGS.fallbackProviderPreset,
-      fallbackProtocol: ui.library.fallbackProtocol?.value || DEFAULT_SETTINGS.fallbackProtocol,
-      fallbackEndpoint: ui.library.fallbackEndpoint?.value.trim() || '',
-      fallbackModel: ui.library.fallbackModel?.value.trim() || '',
-      fallbackApiKey: ui.library.fallbackApiKey?.value.trim() || '',
+      fallbackProviderPreset,
+      fallbackProtocol: fallbackConnection.protocol || DEFAULT_SETTINGS.fallbackProtocol,
+      fallbackEndpoint: fallbackConnection.endpoint,
+      fallbackModel: fallbackConnection.model,
+      fallbackApiKey: fallbackConnection.apiKey,
+      fallbackProviderConnections: rememberProviderConnection(state.settings.fallbackProviderConnections, fallbackProviderPreset, fallbackConnection),
       themePreset: ui.library.themePreset?.value || DEFAULT_SETTINGS.themePreset,
       sendImageAsDataUrl: Boolean(ui.library.sendImageAsDataUrl?.checked),
       showReverseFloatingBall: Boolean(ui.library.showReverseFloatingBall?.checked),
@@ -2200,12 +2558,18 @@
   }
 
   function readSettingsFromInputs() {
+    const providerPreset = ui.settings.providerPreset.value || DEFAULT_SETTINGS.providerPreset;
+    const fallbackProviderPreset = ui.settings.fallbackProviderPreset.value || DEFAULT_SETTINGS.fallbackProviderPreset;
+    const primaryConnection = readProviderConnectionFromFields(getConnectionFields(ui.settings, 'primary'));
+    const fallbackConnection = readProviderConnectionFromFields(getConnectionFields(ui.settings, 'fallback'));
+
     return {
-      providerPreset: ui.settings.providerPreset.value || DEFAULT_SETTINGS.providerPreset,
-      protocol: ui.settings.protocol.value || DEFAULT_SETTINGS.protocol,
-      endpoint: ui.settings.endpoint.value.trim() || DEFAULT_SETTINGS.endpoint,
-      model: ui.settings.model.value.trim() || DEFAULT_SETTINGS.model,
-      apiKey: ui.settings.apiKey.value.trim(),
+      providerPreset,
+      protocol: primaryConnection.protocol || DEFAULT_SETTINGS.protocol,
+      endpoint: primaryConnection.endpoint,
+      model: primaryConnection.model,
+      apiKey: primaryConnection.apiKey,
+      providerConnections: rememberProviderConnection(state.settings.providerConnections, providerPreset, primaryConnection),
       systemPrompt: ui.settings.systemPrompt.value.trim() || DEFAULT_SETTINGS.systemPrompt,
       reversePrompt: ui.settings.reversePrompt.value.trim() || DEFAULT_SETTINGS.reversePrompt,
       enableRoleReplaceMode: Boolean(ui.settings.enableRoleReplaceMode.checked),
@@ -2216,11 +2580,12 @@
       temperature: Number(ui.settings.temperature.value) || DEFAULT_SETTINGS.temperature,
       maxTokens: Number(ui.settings.maxTokens.value) || DEFAULT_SETTINGS.maxTokens,
       enableFallbackModel: Boolean(ui.settings.enableFallbackModel.checked),
-      fallbackProviderPreset: ui.settings.fallbackProviderPreset.value || DEFAULT_SETTINGS.fallbackProviderPreset,
-      fallbackProtocol: ui.settings.fallbackProtocol.value || DEFAULT_SETTINGS.fallbackProtocol,
-      fallbackEndpoint: ui.settings.fallbackEndpoint.value.trim() || '',
-      fallbackModel: ui.settings.fallbackModel.value.trim() || '',
-      fallbackApiKey: ui.settings.fallbackApiKey.value.trim(),
+      fallbackProviderPreset,
+      fallbackProtocol: fallbackConnection.protocol || DEFAULT_SETTINGS.fallbackProtocol,
+      fallbackEndpoint: fallbackConnection.endpoint,
+      fallbackModel: fallbackConnection.model,
+      fallbackApiKey: fallbackConnection.apiKey,
+      fallbackProviderConnections: rememberProviderConnection(state.settings.fallbackProviderConnections, fallbackProviderPreset, fallbackConnection),
       themePreset: ui.settings.themePreset.value || DEFAULT_SETTINGS.themePreset,
       sendImageAsDataUrl: Boolean(ui.settings.sendImageAsDataUrl.checked),
       showReverseFloatingBall: Boolean(ui.settings.showReverseFloatingBall.checked),
@@ -2758,8 +3123,8 @@
     fillSelectOptions(ui.library.fallbackProtocol, PROTOCOL_OPTIONS);
     renderPromptLibraryOptions();
 
-    ui.settings.providerPreset.addEventListener('change', () => syncProviderFields('primary', true));
-    ui.settings.fallbackProviderPreset.addEventListener('change', () => syncProviderFields('fallback', true));
+    ui.settings.providerPreset.addEventListener('change', () => syncProviderFields('primary'));
+    ui.settings.fallbackProviderPreset.addEventListener('change', () => syncProviderFields('fallback'));
     ui.settings.enableFallbackModel.addEventListener('change', () => updateFallbackSettingsVisibility());
     ui.settings.themePreset.addEventListener('change', () => {
       state.settings.themePreset = ui.settings.themePreset.value || DEFAULT_SETTINGS.themePreset;
@@ -2779,8 +3144,8 @@
     ui.library.themePreset?.addEventListener('change', () => saveLibrarySettings());
     ui.library.showReverseFloatingBall?.addEventListener('change', () => saveLibrarySettings());
     ui.library.showWorkbenchFloatingBall?.addEventListener('change', () => saveLibrarySettings());
-    ui.library.providerPreset?.addEventListener('change', () => syncLibraryProviderFields('primary', true));
-    ui.library.fallbackProviderPreset?.addEventListener('change', () => syncLibraryProviderFields('fallback', true));
+    ui.library.providerPreset?.addEventListener('change', () => syncLibraryProviderFields('primary'));
+    ui.library.fallbackProviderPreset?.addEventListener('change', () => syncLibraryProviderFields('fallback'));
 
     ui.fab.addEventListener('click', () => openPanel(state.isNovelAIImagePage ? 'library' : 'reverse'));
     bindPanelInteractions();
