@@ -394,7 +394,7 @@ Output only the final prompt. Nothing else.`,
   fallbackModel: 'grok-4-fast-reasoning',
   fallbackApiKey: '',
   fallbackProviderConnections: {},
-  themePreset: 'sunrise',
+  themePreset: 'novelai',
   sendImageAsDataUrl: true,
   enableBooruTagContext: false,
   activePresetId: 'nai-v4',
@@ -422,6 +422,7 @@ const PROVIDER_PRESETS = [
   { id: 'custom', label: '\u81ea\u5b9a\u4e49', protocol: 'openai-chat', endpoint: '', defaultModel: '' },
 ];
 const THEME_PRESETS = [
+  { id: 'novelai', label: '\u661f\u6d77\u938f\u91d1' },
   { id: 'sunrise', label: '\u65e5\u7167\u5976\u6cb9' },
   { id: 'porcelain', label: '\u74f7\u84dd\u96fe\u767d' },
   { id: 'matcha', label: '\u62b9\u8336\u7ec7\u7eaf' },
