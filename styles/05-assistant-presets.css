@@ -29,8 +29,8 @@
   gap: 6px;
   padding: 8px;
   border-radius: 8px;
-  background: var(--nai-md3-surface-container, #f3f3f3);
-  border: 1px solid var(--nai-md3-outline-variant, #ccc);
+  background: var(--md-sys-color-surface-container);
+  border: 1px solid var(--md-sys-color-outline-variant);
   transition: box-shadow 0.15s, opacity 0.15s;
 }
 
@@ -39,7 +39,7 @@
 }
 
 .nai-preset-block.nai-drag-over {
-  box-shadow: 0 -2px 0 0 var(--nai-md3-primary, #6750a4) inset;
+  box-shadow: 0 -2px 0 0 var(--md-sys-color-primary) inset;
 }
 
 .nai-preset-block-handle {
@@ -47,7 +47,7 @@
   user-select: none;
   font-size: 16px;
   line-height: 32px;
-  color: var(--nai-md3-on-surface-variant, #666);
+  color: var(--md-sys-color-on-surface-variant);
   padding: 0 2px;
   touch-action: none;
 }
@@ -65,7 +65,7 @@
   min-width: 36px;
   border-radius: 10px;
   border: 2px solid var(--nai-md3-header-border);
-  background: var(--nai-md3-switch-track, #e0e0e0);
+  background: var(--nai-md3-switch-track);
   cursor: pointer;
   margin-top: 6px;
   transition: background-color 160ms ease, border-color 160ms ease;
@@ -79,7 +79,7 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--nai-md3-switch-thumb, #fff);
+  background: var(--nai-md3-switch-thumb);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: transform 160ms ease;
 }
@@ -91,16 +91,16 @@
 
 .nai-preset-block-enabled:checked::before {
   transform: translateX(16px);
-  background: var(--md-sys-color-on-primary, #fff);
+  background: var(--md-sys-color-on-primary);
 }
 
 .nai-preset-block-role {
   min-width: 80px;
   padding: 4px 6px;
   border-radius: 6px;
-  border: 1px solid var(--nai-md3-outline-variant, #ccc);
-  background: var(--nai-md3-surface, #fff);
-  color: var(--nai-md3-on-surface, #1c1b1f);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface);
+  color: var(--md-sys-color-on-surface);
   font-size: 12px;
   margin-top: 4px;
 }
@@ -120,7 +120,7 @@
   border: none;
   font-size: 18px;
   cursor: pointer;
-  color: var(--nai-md3-error, #b3261e);
+  color: var(--md-sys-color-error);
   padding: 4px 6px;
   border-radius: 4px;
   line-height: 1;
@@ -128,7 +128,7 @@
 }
 
 .nai-preset-block-delete:hover {
-  background: var(--nai-md3-error-container, #f9dedc);
+  background: color-mix(in srgb, var(--md-sys-color-error) 18%, transparent);
 }
 
 /* Preset action bar */
@@ -159,8 +159,8 @@
   padding: 4px 10px;
   border-radius: 16px;
   font-size: 12px;
-  background: var(--nai-md3-secondary-container, #e8def8);
-  color: var(--nai-md3-on-secondary-container, #1d192b);
+  background: color-mix(in srgb, var(--md-sys-color-secondary) 22%, transparent);
+  color: var(--md-sys-color-on-surface);
   cursor: pointer;
   user-select: none;
   border: none;
@@ -179,7 +179,7 @@
   margin: 6px 0;
   padding: 8px 12px;
   border-radius: 8px;
-  background: var(--nai-md3-surface-container, #f3f3f3);
+  background: var(--md-sys-color-surface-container);
 }
 
 .nai-md3-check-inline {
@@ -187,7 +187,7 @@
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: var(--md-sys-color-on-surface-variant, #49454f);
+  color: var(--md-sys-color-on-surface-variant);
   cursor: pointer;
 }
 
@@ -200,7 +200,7 @@
   min-width: 36px;
   border-radius: 10px;
   border: 2px solid var(--nai-md3-header-border);
-  background: var(--nai-md3-switch-track, #e0e0e0);
+  background: var(--nai-md3-switch-track);
   cursor: pointer;
   transition: background-color 160ms ease, border-color 160ms ease;
 }
@@ -213,7 +213,7 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: var(--nai-md3-switch-thumb, #fff);
+  background: var(--nai-md3-switch-thumb);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: transform 160ms ease;
 }
@@ -225,13 +225,13 @@
 
 .nai-md3-check-inline input[type="checkbox"]:checked::before {
   transform: translateX(16px);
-  background: var(--md-sys-color-on-primary, #fff);
+  background: var(--md-sys-color-on-primary);
 }
 
 .nai-st-import-hint {
   margin-top: -2px;
   font-size: 12px;
   line-height: 1.5;
-  color: var(--nai-md3-on-surface-variant, #49454f);
+  color: var(--md-sys-color-on-surface-variant);
 }
 
