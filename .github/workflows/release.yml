@@ -95,15 +95,16 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$asset_path" --clobber
           else
+            {
+              echo "## Summary"
+              echo "- Fix spurious closing parens after tag completion"
+              echo
+              echo "## Install"
+              echo "1. Download \`$ARCHIVE_NAME\`"
+              echo "2. Unzip and load the unpacked extension in Chrome/Edge"
+            } > release-notes.md
             gh release create "$TAG" "$asset_path" \
               --target "$GITHUB_SHA" \
               --title "$TAG" \
-              --notes "## Summary
-- Add ComfyUI autocomplete on localhost:8188 textarea prompt editors
-- Share tag cache via chrome.storage.local to avoid per-origin quota failures
-- Scale autocomplete overlays with ComfyUI canvas zoom
-
-## Install
-1. Download \`$ARCHIVE_NAME\`
-2. Unzip and load the unpacked extension in Chrome/Edge"
+              --notes-file release-notes.md
           fi
