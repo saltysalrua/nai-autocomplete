@@ -100,28 +100,253 @@ function tryElementToDataUrl(element) {
   return '';
 }
 
+function isGelbooruPage() {
+  return /(^|\.)gelbooru\.com$/i.test(window.location.hostname);
+}
+
+function normalizeGelbooruCdnUrl(url) {
+  if (!url) return '';
+  try {
+    const parsed = new URL(url);
+    if (!/\.gelbooru\.com$/i.test(parsed.hostname)) return url;
+    parsed.pathname = parsed.pathname.replace(/\/{2,}/g, '/');
+    return parsed.href;
+  } catch (error) {
+    return url.replace(/(gelbooru\.com)\/+/g, '$1/');
+  }
+}
+
+function getGelbooruOgImageUrl() {
+  const meta = document.querySelector('meta[property="og:image"]');
+  const content = meta?.getAttribute('content')?.trim() || '';
+  return /^https?:/i.test(content) ? normalizeGelbooruCdnUrl(content) : '';
+}
+
+function getGelbooruOriginalImageUrl() {
+  const links = document.querySelectorAll('a[href*="/images/"]');
+  for (const link of links) {
+    if (!/original image/i.test(link.textContent || '')) continue;
+    try {
+      return normalizeGelbooruCdnUrl(new URL(link.href, window.location.href).href);
+    } catch (error) {
+      continue;
+    }
+  }
+  return '';
+}
+
+function parseGelbooruHotlinkUrl(url) {
+  try {
+    const parsed = new URL(url, window.location.href);
+    if (!/(^|\.)gelbooru\.com$/i.test(parsed.hostname) || !/\/hotlink\.php$/i.test(parsed.pathname)) {
+      return null;
+    }
+
+    const hash = parsed.searchParams.get('hash')?.trim() || '';
+    const imagePathMatch = hash.match(/\/?images\/([0-9a-f]{2})\/([0-9a-f]{2})\/([0-9a-f]{32})(\.\w+)?/i);
+    if (!imagePathMatch) return null;
+
+    const [, a, b, md5, ext] = imagePathMatch;
+    return {
+      a,
+      b,
+      md5,
+      extension: (ext || '.png').replace(/^\./, ''),
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
+function buildGelbooruCdnUrlsFromPath(a, b, md5, extension) {
+  const extensions = extension ? [extension.replace(/^\./, '')] : ['png', 'jpg', 'webp', 'gif'];
+  const urls = [];
+  for (const imgServer of [4, 3, 2, 1]) {
+    for (const ext of extensions) {
+      urls.push(`https://img${imgServer}.gelbooru.com/images/${a}/${b}/${md5}.${ext}`);
+    }
+  }
+  return urls;
+}
+
+function getGelbooruImageFromContainer(element) {
+  const container = element?.closest?.('.image-container, .note-container');
+  if (!container) return '';
+
+  const md5 = container.dataset?.md5 || '';
+  if (!/^[0-9a-f]{32}$/i.test(md5)) return '';
+
+  const extension = (container.dataset?.fileExt || '.png').replace(/^\./, '') || 'png';
+  return `https://img4.gelbooru.com/images/${md5.slice(0, 2)}/${md5.slice(2, 4)}/${md5}.${extension}`;
+}
+
+function buildGelbooruFullImageCandidates(url, element) {
+  const normalized = normalizeGelbooruCdnUrl(url);
+  if (!normalized || !/gelbooru\.com/i.test(normalized)) {
+    return normalized ? [normalized] : [];
+  }
+
+  const candidates = [];
+  const push = (candidate) => {
+    const next = normalizeGelbooruCdnUrl(candidate);
+    if (!next || /\/hotlink\.php/i.test(next) || candidates.includes(next)) return;
+    candidates.push(next);
+  };
+
+  const containerUrl = getGelbooruImageFromContainer(element);
+  if (containerUrl) push(containerUrl);
+
+  const ogImage = getGelbooruOgImageUrl();
+  if (ogImage) push(ogImage);
+
+  const originalLink = getGelbooruOriginalImageUrl();
+  if (originalLink) push(originalLink);
+
+  const hotlink = parseGelbooruHotlinkUrl(url) || parseGelbooruHotlinkUrl(normalized);
+  if (hotlink) {
+    buildGelbooruCdnUrlsFromPath(hotlink.a, hotlink.b, hotlink.md5, hotlink.extension).forEach(push);
+  } else if (!/\/hotlink\.php/i.test(normalized)) {
+    push(normalized);
+  }
+
+  const thumbnailMatch = normalized.match(
+    /^(https?:\/\/img\d+\.gelbooru\.com)\/thumbnails\/([0-9a-f]{2})\/([0-9a-f]{2})\/thumbnail_([0-9a-f]{32})\.\w+/i,
+  );
+  if (thumbnailMatch) {
+    const [, base, a, b, md5] = thumbnailMatch;
+    for (const ext of ['jpg', 'png', 'webp', 'gif']) {
+      push(`${base}/images/${a}/${b}/${md5}.${ext}`);
+    }
+  }
+
+  const sampleMatch = normalized.match(
+    /^(https?:\/\/img\d+\.gelbooru\.com)\/samples\/([0-9a-f]{2})\/([0-9a-f]{2})\/sample_([0-9a-f]{32})\.\w+/i,
+  );
+  if (sampleMatch) {
+    const [, base, a, b, md5] = sampleMatch;
+    if (ogImage && ogImage.includes(md5)) {
+      push(ogImage);
+    } else {
+      for (const ext of ['jpg', 'png', 'webp', 'gif']) {
+        push(`${base}/images/${a}/${b}/${md5}.${ext}`);
+      }
+    }
+  }
+
+  return candidates;
+}
+
+function resolveGelbooruImageUrl(url, element) {
+  const candidates = buildGelbooruFullImageCandidates(url, element);
+  return candidates[0] || normalizeGelbooruCdnUrl(url);
+}
+
+function isPixivPage() {
+  return /(^|\.)pixiv\.net$/i.test(window.location.hostname);
+}
+
+function upgradePixivToOriginal(url) {
+  if (!url || !/pximg\.net/i.test(url)) return '';
+
+  try {
+    let next = url;
+    if (/\/c\/[^/]+\//.test(next)) {
+      next = next.replace(/\/c\/[^/]+\//, '/img-original/');
+    }
+    if (/\/img-master\//.test(next)) {
+      next = next.replace('/img-master/', '/img-original/');
+    }
+    next = next.replace(/_master\d+(\.\w+)$/i, '$1');
+    return next;
+  } catch (error) {
+    return '';
+  }
+}
+
+function buildPixivFullImageCandidates(url, element) {
+  const candidates = [];
+  const push = (candidate) => {
+    const next = upgradePixivToOriginal(candidate) || candidate;
+    if (next && !candidates.includes(next)) candidates.push(next);
+  };
+
+  const ogImage = document.querySelector('meta[property="og:image"]')?.getAttribute('content')?.trim() || '';
+  if (ogImage) push(ogImage);
+
+  if (element instanceof HTMLImageElement) {
+    push(element.currentSrc || element.src || '');
+    const srcset = element.srcset || '';
+    srcset.split(',').forEach((entry) => {
+      const candidate = entry.trim().split(/\s+/)[0];
+      if (candidate) push(candidate);
+    });
+  } else if (url) {
+    push(url);
+  }
+
+  const linkedOriginal = element?.closest?.('a[href*="pximg.net"]')?.href;
+  if (linkedOriginal) push(linkedOriginal);
+
+  return candidates;
+}
+
+function resolvePixivImageUrl(url, element) {
+  const candidates = buildPixivFullImageCandidates(url, element);
+  return candidates[0] || upgradePixivToOriginal(url) || url;
+}
+
+function usesExternalImageResolver() {
+  return isGelbooruPage() || isPixivPage();
+}
+
+function buildExternalImageCandidates(url, element) {
+  if (isGelbooruPage()) return buildGelbooruFullImageCandidates(url, element);
+  if (isPixivPage()) return buildPixivFullImageCandidates(url, element);
+  return url ? [url] : [];
+}
+
+function resolveExternalImageUrl(url, element) {
+  if (isGelbooruPage()) return resolveGelbooruImageUrl(url, element);
+  if (isPixivPage()) return resolvePixivImageUrl(url, element);
+  return url;
+}
+
 function resolveImageSource(element) {
   if (element instanceof HTMLImageElement) {
-    const sourceUrl = element.currentSrc || element.src || '';
+    const rawUrl = element.currentSrc || element.src || '';
+    const sourceUrl = usesExternalImageResolver() ? resolveExternalImageUrl(rawUrl, element) : rawUrl;
+    const candidateUrls = usesExternalImageResolver()
+      ? buildExternalImageCandidates(rawUrl, element)
+      : sourceUrl
+        ? [sourceUrl]
+        : [];
     const dataUrl = sourceUrl.startsWith('data:') ? sourceUrl : tryElementToDataUrl(element);
-    return { sourceUrl, dataUrl };
+    return { sourceUrl, candidateUrls, dataUrl };
   }
 
   if (element instanceof HTMLCanvasElement) {
     return {
       sourceUrl: window.location.href,
+      candidateUrls: [window.location.href],
       dataUrl: tryElementToDataUrl(element),
     };
   }
 
   if (element instanceof HTMLElement) {
+    const sourceUrl = getBackgroundImageUrl(element);
+    const candidateUrls = usesExternalImageResolver()
+      ? buildExternalImageCandidates(sourceUrl, element)
+      : sourceUrl
+        ? [sourceUrl]
+        : [];
     return {
-      sourceUrl: getBackgroundImageUrl(element),
+      sourceUrl: usesExternalImageResolver() ? resolveExternalImageUrl(sourceUrl, element) : sourceUrl,
+      candidateUrls,
       dataUrl: '',
     };
   }
 
-  return { sourceUrl: '', dataUrl: '' };
+  return { sourceUrl: '', candidateUrls: [], dataUrl: '' };
 }
 
 function setPage(page) {

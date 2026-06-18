@@ -272,7 +272,7 @@ function detectBooruTagsFiltered() {
         if (name) tags.push(name.replace(/_/g, ' '));
       });
     });
-  } else if (host === 'gelbooru.com') {
+  } else if (host.endsWith('gelbooru.com')) {
     const typeMap = { general: 'general', character: 'character', copyright: 'copyright', artist: 'artist', metadata: 'meta' };
     Object.entries(typeMap).forEach(([cssClass, settingKey]) => {
       if (types[settingKey] === false) return;

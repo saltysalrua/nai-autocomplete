@@ -19,19 +19,164 @@ function getVisibleCaptureRect(element) {
   };
 }
 
-async function captureVisibleElement(element) {
-  const rect = getVisibleCaptureRect(element);
-  if (!rect) return '';
+async function waitForNextPaint() {
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}
+
+function loadImageDataUrl(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error('Failed to decode captured tile'));
+    image.src = dataUrl;
+  });
+}
+
+async function stitchCaptureTilesInPage(width, height, tiles, dpr) {
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.floor(width * dpr));
+  canvas.height = Math.max(1, Math.floor(height * dpr));
+  const context = canvas.getContext('2d');
+  if (!context) {
+    throw new Error('Unable to stitch captured image');
+  }
+
+  for (const tile of tiles) {
+    const image = await loadImageDataUrl(tile.dataUrl);
+    context.drawImage(
+      image,
+      0,
+      0,
+      image.naturalWidth,
+      image.naturalHeight,
+      Math.floor((tile.destX || 0) * dpr),
+      Math.floor((tile.destY || 0) * dpr),
+      Math.floor((tile.width || 0) * dpr),
+      Math.floor((tile.height || 0) * dpr),
+    );
+  }
+
+  return canvas.toDataURL('image/png');
+}
+
+async function withAssistantUiHidden(callback) {
+  const nodes = [ui.root, ui.fab, ui.panel, ui.library?.drawer].filter(Boolean);
+  const previous = nodes.map((node) => ({
+    node,
+    visibility: node.style.visibility,
+    pointerEvents: node.style.pointerEvents,
+  }));
+
+  nodes.forEach((node) => {
+    node.style.visibility = 'hidden';
+    node.style.pointerEvents = 'none';
+  });
 
   try {
-    const response = await sendRuntimeMessage({
-      type: 'nai-capture-visible-area',
-      rect,
+    await waitForNextPaint();
+    return await callback();
+  } finally {
+    previous.forEach(({ node, visibility, pointerEvents }) => {
+      node.style.visibility = visibility;
+      node.style.pointerEvents = pointerEvents;
     });
-    return response?.ok ? response.dataUrl || '' : '';
-  } catch (error) {
-    return '';
   }
+}
+
+function getFullElementCapturePlan(element) {
+  const rect = element.getBoundingClientRect();
+  return {
+    docTop: rect.top + window.scrollY,
+    docLeft: rect.left + window.scrollX,
+    totalWidth: rect.width,
+    totalHeight: rect.height,
+    viewW: window.innerWidth,
+    viewH: window.innerHeight,
+    dpr: window.devicePixelRatio || 1,
+    needsStitch:
+      rect.height > window.innerHeight * 0.92 ||
+      rect.top < -1 ||
+      rect.bottom > window.innerHeight + 1 ||
+      rect.width > window.innerWidth * 0.92 ||
+      rect.left < -1 ||
+      rect.right > window.innerWidth + 1,
+  };
+}
+
+async function captureVisibleElement(element) {
+  return withAssistantUiHidden(async () => {
+    const savedScroll = { x: window.scrollX, y: window.scrollY };
+    const plan = getFullElementCapturePlan(element);
+
+    try {
+      if (!plan.needsStitch) {
+        const rect = getVisibleCaptureRect(element);
+        if (!rect) return '';
+        const response = await sendRuntimeMessage({
+          type: 'nai-capture-visible-area',
+          rect,
+        });
+        return response?.ok ? response.dataUrl || '' : '';
+      }
+
+      const tiles = [];
+      let scrollOffset = 0;
+      let destY = 0;
+      const maxTiles = 40;
+
+      while (scrollOffset < plan.totalHeight - 0.5 && tiles.length < maxTiles) {
+        window.scrollTo(savedScroll.x, Math.max(0, plan.docTop + scrollOffset));
+        await waitForNextPaint();
+        await new Promise((resolve) => setTimeout(resolve, 80));
+
+        const rect = element.getBoundingClientRect();
+        const cropLeft = Math.max(0, rect.left);
+        const cropTop = Math.max(0, rect.top);
+        const cropRight = Math.min(plan.viewW, rect.right);
+        const cropBottom = Math.min(plan.viewH, rect.bottom);
+        const cropWidth = cropRight - cropLeft;
+        const cropHeight = cropBottom - cropTop;
+
+        if (cropWidth < 2 || cropHeight < 2) break;
+
+        const response = await sendRuntimeMessage({
+          type: 'nai-capture-visible-area',
+          rect: {
+            left: cropLeft,
+            top: cropTop,
+            width: cropWidth,
+            height: cropHeight,
+            devicePixelRatio: plan.dpr,
+          },
+        });
+
+        if (!response?.ok || !response.dataUrl) break;
+
+        tiles.push({
+          dataUrl: response.dataUrl,
+          destX: Math.max(0, Math.round(cropLeft - rect.left)),
+          destY,
+          width: cropWidth,
+          height: cropHeight,
+        });
+
+        destY += cropHeight;
+        scrollOffset += cropHeight;
+      }
+
+      if (!tiles.length) return '';
+      if (tiles.length === 1) return tiles[0].dataUrl;
+
+      try {
+        return await stitchCaptureTilesInPage(plan.totalWidth, plan.totalHeight, tiles, plan.dpr);
+      } catch (error) {
+        return tiles[0].dataUrl;
+      }
+    } finally {
+      window.scrollTo(savedScroll.x, savedScroll.y);
+      await waitForNextPaint();
+    }
+  });
 }
 
 async function useImageElement(image, autoReverse) {
@@ -60,10 +205,12 @@ async function useImageElement(image, autoReverse) {
     const response = await sendRuntimeMessage({
       type: 'nai-fetch-image-dataurl',
       url: sourceUrl,
+      urls: resolved.candidateUrls,
       referrer: window.location.href,
     });
 
     if (!response?.ok) {
+      setStatus('\u76f4\u63a5\u8bfb\u53d6\u5931\u8d25\uff0c\u6539\u7528\u6eda\u52a8\u62fc\u63a5\u622a\u56fe...', false);
       const capturedDataUrl = await captureVisibleElement(image);
       if (!capturedDataUrl) {
         throw new Error(response?.error || '\u56fe\u7247\u8bfb\u53d6\u5931\u8d25');
