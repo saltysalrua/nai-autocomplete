@@ -167,14 +167,17 @@ async function saveCustomPresets() {
   return storageSet({ [PRESETS_KEY]: state.customPresets });
 }
 
-function persistActivePreset(blocksFromEditor, presetId) {
+function persistActivePreset(blocksFromEditor, presetId, presetName) {
   if (!presetId) syncActivePresetIdFromUI();
   const id = presetId || state.settings.activePresetId || 'nai-v4';
   const current = getAllPresets().find((p) => p.id === id) || normalizePreset(BUILTIN_PRESETS[0]);
   const blocks = Array.isArray(blocksFromEditor) && blocksFromEditor.length
     ? blocksFromEditor.map(normalizePresetBlock)
     : current.blocks;
-  const stored = normalizePreset({ ...current, id, blocks });
+  const nextName = typeof presetName === 'string' && presetName.trim()
+    ? presetName.trim()
+    : current.name;
+  const stored = normalizePreset({ ...current, id, name: nextName, blocks });
   if (!stored) return;
 
   const idx = state.customPresets.findIndex((p) => p.id === id);

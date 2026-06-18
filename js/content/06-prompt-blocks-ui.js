@@ -678,7 +678,7 @@ function getPromptSelectionContext(editor) {
 
   const beforeRange = range.cloneRange();
   beforeRange.selectNodeContents(editor);
-  beforeRange.setEnd(range.startContainer, range.startOffset);
+  if (!safeSetRangeBoundary(beforeRange, 'end', range.startContainer, range.startOffset)) return null;
   const startTokenIndex = splitPromptTags(beforeRange.toString()).length;
   const rect = range.getBoundingClientRect();
 
@@ -793,8 +793,11 @@ function getTokenIndexFromPoint(editor, clientX, clientY) {
     const position = document.caretPositionFromPoint(clientX, clientY);
     if (position) {
       caretRange = document.createRange();
-      caretRange.setStart(position.offsetNode, position.offset);
-      caretRange.collapse(true);
+      if (!safeSetRangeBoundary(caretRange, 'start', position.offsetNode, position.offset)) {
+        caretRange = null;
+      } else {
+        caretRange.collapse(true);
+      }
     }
   }
 
@@ -804,7 +807,9 @@ function getTokenIndexFromPoint(editor, clientX, clientY) {
 
   const beforeRange = document.createRange();
   beforeRange.selectNodeContents(editor);
-  beforeRange.setEnd(caretRange.startContainer, caretRange.startOffset);
+  if (!safeSetRangeBoundary(beforeRange, 'end', caretRange.startContainer, caretRange.startOffset)) {
+    return splitPromptTags(getEditorText(editor)).length;
+  }
   return splitPromptTags(beforeRange.toString()).length;
 }
 

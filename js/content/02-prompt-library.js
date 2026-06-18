@@ -196,10 +196,14 @@ function createRangeForCurrentTextSegment(context, start, includeTail, options =
       ? Math.max(nodeStart, Math.min(nodeTextLength, nodeSegmentStartOffset + options.end))
       : (includeTail
           ? Math.max(nodeStart, Math.min(nodeTextLength, caretNodeOffset + nodeSegmentTailText.length))
-          : caretNodeOffset);
+          : clampDomOffset(caretNode, caretNodeOffset));
     const range = document.createRange();
-    range.setStart(caretNode, nodeStart);
-    range.setEnd(caretNode, nodeEnd);
+    try {
+      range.setStart(caretNode, nodeStart);
+      range.setEnd(caretNode, nodeEnd);
+    } catch (error) {
+      return null;
+    }
     return range;
   }
 

@@ -12,6 +12,29 @@ function isRichTextPromptEditor(editor) {
   return editor?.classList?.contains('ProseMirror');
 }
 
+function getMaxDomOffset(node) {
+  if (!node) return 0;
+  if (node.nodeType === Node.TEXT_NODE) return node.textContent?.length || 0;
+  if (node.nodeType === Node.ELEMENT_NODE) return node.childNodes.length;
+  return 0;
+}
+
+function clampDomOffset(node, offset) {
+  return Math.max(0, Math.min(Number(offset) || 0, getMaxDomOffset(node)));
+}
+
+function safeSetRangeBoundary(range, boundary, node, offset) {
+  if (!range || !node) return false;
+  try {
+    const safeOffset = clampDomOffset(node, offset);
+    if (boundary === 'start') range.setStart(node, safeOffset);
+    else range.setEnd(node, safeOffset);
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
 function listPromptEditors() {
   return Array.from(document.querySelectorAll(PROMPT_EDITOR_SELECTOR));
 }

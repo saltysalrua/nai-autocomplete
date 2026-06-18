@@ -228,3 +228,10 @@
   background: var(--md-sys-color-on-primary, #fff);
 }
 
+.nai-st-import-hint {
+  margin-top: -2px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--nai-md3-on-surface-variant, #49454f);
+}
+

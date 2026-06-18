@@ -172,8 +172,12 @@ function createRangeFromTextOffsets(root, startOffset, endOffset) {
   }
   if (!startNode || !endNode) return null;
 
-  range.setStart(startNode, startNodeOffset);
-  range.setEnd(endNode, endNodeOffset);
+  try {
+    range.setStart(startNode, clampDomOffset(startNode, startNodeOffset));
+    range.setEnd(endNode, clampDomOffset(endNode, endNodeOffset));
+  } catch (error) {
+    return null;
+  }
   return range;
 }
 
@@ -194,11 +198,11 @@ function getSegmentContext() {
 
   const beforeRange = range.cloneRange();
   beforeRange.selectNodeContents(editor);
-  beforeRange.setEnd(range.startContainer, range.startOffset);
+  if (!safeSetRangeBoundary(beforeRange, 'end', range.startContainer, range.startOffset)) return null;
 
   const afterRange = range.cloneRange();
   afterRange.selectNodeContents(editor);
-  afterRange.setStart(range.startContainer, range.startOffset);
+  if (!safeSetRangeBoundary(afterRange, 'start', range.startContainer, range.startOffset)) return null;
 
   const beforeText = beforeRange.toString();
   const afterText = afterRange.toString();
@@ -216,11 +220,11 @@ function getSegmentContext() {
 
   const scopeBeforeRange = range.cloneRange();
   scopeBeforeRange.selectNodeContents(scope);
-  scopeBeforeRange.setEnd(range.startContainer, range.startOffset);
+  if (!safeSetRangeBoundary(scopeBeforeRange, 'end', range.startContainer, range.startOffset)) return null;
 
   const scopeAfterRange = range.cloneRange();
   scopeAfterRange.selectNodeContents(scope);
-  scopeAfterRange.setStart(range.startContainer, range.startOffset);
+  if (!safeSetRangeBoundary(scopeAfterRange, 'start', range.startContainer, range.startOffset)) return null;
 
   const scopeBeforeText = scopeBeforeRange.toString();
   const scopeAfterText = scopeAfterRange.toString();
