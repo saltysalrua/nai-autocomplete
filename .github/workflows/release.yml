@@ -63,17 +63,18 @@ jobs:
 
           package_dir="dist/nai-autocomplete"
           rm -rf dist
-          mkdir -p "$package_dir"
+          mkdir -p "$package_dir/js/bundle" "$package_dir/styles"
+
+          node scripts/build-modular.mjs
 
           cp manifest.json "$package_dir/"
           cp background.js "$package_dir/"
-          cp content.js "$package_dir/"
-          cp image-assistant.js "$package_dir/"
           cp official-chunk-bridge.js "$package_dir/"
-          cp styles.css "$package_dir/"
           cp LICENSE "$package_dir/"
           cp README.md "$package_dir/"
           cp -r icons "$package_dir/"
+          cp js/bundle/content.js js/bundle/image-assistant.js js/bundle/background.js "$package_dir/js/bundle/"
+          cp styles/bundle.css "$package_dir/styles/"
 
           if [[ -d data ]]; then
             cp -r data "$package_dir/"
@@ -97,5 +98,12 @@ jobs:
             gh release create "$TAG" "$asset_path" \
               --target "$GITHUB_SHA" \
               --title "$TAG" \
-              --notes "Chrome/Edge extension package for $TAG."
+              --notes "## Summary
+- Add ComfyUI autocomplete on localhost:8188 textarea prompt editors
+- Share tag cache via chrome.storage.local to avoid per-origin quota failures
+- Scale autocomplete overlays with ComfyUI canvas zoom
+
+## Install
+1. Download \`$ARCHIVE_NAME\`
+2. Unzip and load the unpacked extension in Chrome/Edge"
           fi
