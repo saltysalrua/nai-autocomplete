@@ -17,7 +17,7 @@ const CONFIG = {
   MIN_QUERY_LENGTH: 1,
   DEBOUNCE_DELAY: 150,
 };
-const CONTENT_SCRIPT_VERSION = '1.5.12';
+const CONTENT_SCRIPT_VERSION = '1.5.13';
 
 // 全局设置
 let settings = {
