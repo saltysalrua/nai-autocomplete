@@ -3,6 +3,7 @@ function createUI() {
   root.className = 'nai-md3-root';
   root.innerHTML = `
     <button class="nai-md3-fab" type="button" title="${T.title}">${T.fab}</button>
+    <input type="file" accept="application/json,.json" data-field="stPresetInput" class="nai-hidden" hidden />
     <section class="nai-md3-panel nai-hidden">
       <header class="nai-md3-header">
         <div class="nai-md3-title">${T.title}</div>
@@ -80,8 +81,10 @@ function createUI() {
           </div>
           <div class="nai-md3-grid-2" style="align-items:end">
             <div><label class="nai-md3-label">预设</label><select class="nai-md3-input" data-field="activePresetId"></select></div>
-            <div style="display:flex;gap:.4em;padding-bottom:2px"><button type="button" class="nai-md3-inline-action" data-action="duplicate-preset">复制</button><button type="button" class="nai-md3-inline-action" data-action="new-preset">新建</button><button type="button" class="nai-md3-inline-action nai-preset-delete-btn nai-hidden" data-action="delete-preset">删除</button><button type="button" class="nai-md3-inline-action nai-preset-reset-btn nai-hidden" data-action="reset-preset">恢复默认</button></div>
+            <div style="display:flex;gap:.4em;padding-bottom:2px;flex-wrap:wrap"><button type="button" class="nai-md3-inline-action" data-action="duplicate-preset">复制</button><button type="button" class="nai-md3-inline-action" data-action="new-preset">新建</button><button type="button" class="nai-md3-inline-action" data-action="import-st-preset">${T.importStPreset}</button><button type="button" class="nai-md3-inline-action nai-preset-delete-btn nai-hidden" data-action="delete-preset">删除</button><button type="button" class="nai-md3-inline-action nai-preset-reset-btn nai-hidden" data-action="reset-preset">恢复默认</button></div>
           </div>
+          <label class="nai-md3-label">预设名称</label><input class="nai-md3-input" data-field="activePresetName" type="text" placeholder="自定义预设名称" />
+          <div class="nai-st-import-hint">${T.stImportHint}</div>
           <div class="nai-preset-role-section nai-hidden">
             <label class="nai-md3-label">${T.rolePrompt}</label><textarea class="nai-md3-input" data-field="rolePrompt" rows="2"></textarea>
             <div class="nai-md3-grid-2 nai-md3-library-row">
@@ -235,13 +238,19 @@ function createUI() {
                       <span>预设</span>
                       <select data-field="wbPresetId"></select>
                     </label>
-                    <div style="display:flex;gap:.4em;padding-bottom:2px">
+                    <div style="display:flex;gap:.4em;padding-bottom:2px;flex-wrap:wrap">
                       <button type="button" class="nai-md3-inline-action" data-action="wb-duplicate-preset">复制</button>
                       <button type="button" class="nai-md3-inline-action" data-action="wb-new-preset">新建</button>
+                      <button type="button" class="nai-md3-inline-action" data-action="import-st-preset">${T.importStPreset}</button>
                       <button type="button" class="nai-md3-inline-action nai-wb-preset-delete-btn nai-hidden" data-action="wb-delete-preset">删除</button>
                       <button type="button" class="nai-md3-inline-action nai-wb-preset-reset-btn nai-hidden" data-action="wb-reset-preset">恢复默认</button>
                     </div>
                   </div>
+                  <div class="nai-st-import-hint">${T.stImportHint}</div>
+                  <label class="nai-library-field">
+                    <span>预设名称</span>
+                    <input data-field="wbPresetName" type="text" placeholder="自定义预设名称" />
+                  </label>
                   <div class="nai-wb-preset-role-section nai-hidden">
                     <label class="nai-library-field">
                       <span>${T.rolePrompt}</span>
@@ -422,6 +431,7 @@ function createUI() {
   document.body.appendChild(root);
   ui.root = root;
   ui.fab = root.querySelector('.nai-md3-fab');
+  ui.stPresetInput = root.querySelector('[data-field="stPresetInput"]');
   ui.panel = root.querySelector('.nai-md3-panel');
   ui.library.drawer = root.querySelector('.nai-library-drawer');
   ui.library.status = root.querySelector('.nai-library-drawer-status');
@@ -431,6 +441,7 @@ function createUI() {
   ui.library.presetsPanel = root.querySelector('[data-workbench-panel="presets"]');
   ui.wb = {
     presetId: root.querySelector('[data-field="wbPresetId"]'),
+    presetName: root.querySelector('[data-field="wbPresetName"]'),
     blocksContainer: root.querySelector('[data-wb-preset-blocks]'),
     deleteBtn: root.querySelector('.nai-wb-preset-delete-btn'),
     resetBtn: root.querySelector('.nai-wb-preset-reset-btn'),
@@ -461,6 +472,7 @@ function createUI() {
   ui.settings.modelList = root.querySelector('#nai-primary-model-list');
   ui.settings.apiKey = root.querySelector('[data-field="apiKey"]');
   ui.settings.activePresetId = root.querySelector('[data-field="activePresetId"]');
+  ui.settings.presetName = root.querySelector('[data-field="activePresetName"]');
   ui.settings.roleSection = root.querySelector('.nai-preset-role-section');
   ui.settings.rolePrompt = root.querySelector('[data-field="rolePrompt"]');
   ui.settings.roleLibrarySelect = root.querySelector('[data-field="roleLibrarySelect"]');
@@ -511,6 +523,8 @@ function createUI() {
   ui.library.fallbackModelList = ui.library.drawer?.querySelector('#nai-library-fallback-model-list');
   ui.library.fallbackApiKey = ui.library.drawer?.querySelector('[data-field="libraryFallbackApiKey"]');
 
+  ui.stPresetInput?.addEventListener('change', handleStPresetImport);
+
   fillSelectOptions(ui.settings.providerPreset, PROVIDER_PRESETS);
   fillSelectOptions(ui.settings.protocol, PROTOCOL_OPTIONS);
   fillSelectOptions(ui.settings.themePreset, THEME_PRESETS);
@@ -533,6 +547,12 @@ function createUI() {
     state.settings.activePresetId = ui.settings.activePresetId.value;
     renderPresetSelector();
     renderPresetEditor('settings');
+  });
+  ui.settings.presetName?.addEventListener('change', () => {
+    if (applyActivePresetName('settings')) {
+      renderPresetSelector();
+      saveCustomPresets();
+    }
   });
   if (ui.settings.enableBooruTagContext) {
     ui.settings.enableBooruTagContext.addEventListener('change', () => updateBooruTagTypesVisibility());
@@ -564,6 +584,12 @@ function createUI() {
     state.settings.activePresetId = ui.wb.presetId.value;
     renderWorkbenchPresetSelector();
     renderPresetEditor('workbench');
+  });
+  ui.wb.presetName?.addEventListener('change', () => {
+    if (applyActivePresetName('workbench')) {
+      renderWorkbenchPresetSelector();
+      saveCustomPresets();
+    }
   });
 
   ui.fab.addEventListener('click', () => openPanel(state.isNovelAIImagePage ? 'library' : 'reverse'));
@@ -627,6 +653,7 @@ function createUI() {
     else if (action === 'new-preset') handleNewPreset();
     else if (action === 'delete-preset') handleDeletePreset();
     else if (action === 'reset-preset') handleResetPreset();
+    else if (action === 'import-st-preset') triggerStPresetImport();
     else if (action === 'add-block') handleAddBlock();
     else if (action === 'insert-variable') insertVariableAtCursor(actionTarget.dataset.variable || '');
     else if (action === 'wb-duplicate-preset') {

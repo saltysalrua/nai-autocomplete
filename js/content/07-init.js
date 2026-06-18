@@ -12,14 +12,23 @@ async function init() {
     ensureOfficialChunkBridgeScript();
   }
   await loadPromptLibrary();
+  await loadPromptPresetLibrary();
   loadTags();
 
   try {
     chrome?.storage?.onChanged?.addListener((changes, areaName) => {
-      if (areaName !== 'local' || !changes[PROMPT_LIBRARY_KEY]) return;
-      promptLibrary = Array.isArray(changes[PROMPT_LIBRARY_KEY].newValue)
-        ? changes[PROMPT_LIBRARY_KEY].newValue.map(normalizePromptLibraryEntry).filter(Boolean)
-        : [];
+      if (areaName !== 'local') return;
+      if (changes[PROMPT_LIBRARY_KEY]) {
+        promptLibrary = Array.isArray(changes[PROMPT_LIBRARY_KEY].newValue)
+          ? changes[PROMPT_LIBRARY_KEY].newValue.map(normalizePromptLibraryEntry).filter(Boolean)
+          : [];
+      }
+      if (changes[PROMPT_PRESET_LIBRARY_KEY]) {
+        promptPresetLibrary = Array.isArray(changes[PROMPT_PRESET_LIBRARY_KEY].newValue)
+          ? changes[PROMPT_PRESET_LIBRARY_KEY].newValue.map(normalizePromptPresetEntry).filter(Boolean)
+          : [];
+        renderPromptPresetToolbar(activeEditor);
+      }
     });
   } catch (error) {}
 
@@ -29,6 +38,7 @@ async function init() {
     ensurePromptBlockModel(editor, { render: false });
     renderPromptBlockPanelSoon(editor);
     updatePromptBlockToolbar(editor);
+    renderPromptPresetToolbar(editor);
     refreshAutocomplete(editor);
   };
 
@@ -63,6 +73,7 @@ async function init() {
       hidePromptBlockToolbar();
       if (activeEditor?.isConnected) {
         renderPromptBlockPanelSoon(activeEditor);
+        renderPromptPresetToolbar(activeEditor);
       }
       return;
     }
@@ -74,6 +85,7 @@ async function init() {
       hidePromptBlockToolbar();
       if (activeEditor?.isConnected) {
         renderPromptBlockPanelSoon(activeEditor);
+        renderPromptPresetToolbar(activeEditor);
       }
       return;
     }
@@ -85,6 +97,7 @@ async function init() {
     }
     renderPromptBlockPanelSoon(editor);
     updatePromptBlockToolbar(editor);
+    renderPromptPresetToolbar(editor);
     refreshAutocomplete(editor);
     scheduleAutocompleteReposition();
   });
@@ -96,6 +109,7 @@ async function init() {
     if (!activeEditor) return;
     scheduleAutocompleteReposition();
     renderPromptBlockPanelSoon(activeEditor, true);
+    renderPromptPresetToolbar(activeEditor);
   }, { capture: true, passive: true });
 
   document.addEventListener('keydown', handleKeyDown, true);
@@ -127,6 +141,9 @@ async function init() {
     const isAutocompleteInteraction = Date.now() - autocompletePointerDownAt < 350;
     if (!isAutocompleteInteraction && !autocompleteContainer?.contains(document.activeElement)) hideAutocomplete();
     if (!promptBlockPanel?.contains(document.activeElement)) hidePromptBlockToolbar();
+    if (!promptPresetToolbar?.contains(document.activeElement) && !activeEditor?.contains(document.activeElement) && !isPromptPresetDialogOpen()) {
+      hidePromptPresetToolbar();
+    }
   }, 150), true);
 
   document.addEventListener('dragover', event => {
@@ -150,11 +167,13 @@ async function init() {
   window.addEventListener('resize', () => {
     if (!activeEditor) return;
     renderPromptBlockPanelSoon(activeEditor, true);
+    renderPromptPresetToolbar(activeEditor);
   });
 
   document.addEventListener('scroll', () => {
     if (!activeEditor) return;
     renderPromptBlockPanelSoon(activeEditor, true);
+    renderPromptPresetToolbar(activeEditor);
     hidePromptBlockDropIndicator();
   }, true);
 }

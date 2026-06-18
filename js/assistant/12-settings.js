@@ -176,6 +176,7 @@ async function saveSettings() {
   }
   syncActivePresetIdFromUI();
   syncBlocksToPreset();
+  applyActivePresetName('settings');
   state.settings = { ...DEFAULT_SETTINGS, ...readSettingsFromInputs() };
   const saved = await storageSet({ [SETTINGS_KEY]: state.settings });
   if (!saved) {

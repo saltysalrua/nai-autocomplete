@@ -15,6 +15,37 @@ function renderPresetSelector() {
   if (ui.settings.presetResetBtn) {
     ui.settings.presetResetBtn.classList.toggle('nai-hidden', !isModifiedBuiltIn);
   }
+  syncPresetNameField('settings');
+}
+
+function isActivePresetNameEditable(preset) {
+  if (!preset) return false;
+  return !preset.builtIn || state.customPresets.some((entry) => entry.id === preset.id);
+}
+
+function syncPresetNameField(editor) {
+  const preset = getActivePreset();
+  const nameField = editor === 'workbench' ? ui.wb?.presetName : ui.settings?.presetName;
+  if (!nameField) return;
+  nameField.value = preset.name || '';
+  const editable = isActivePresetNameEditable(preset);
+  nameField.disabled = !editable;
+  nameField.title = editable ? '' : '内置预设名称不可直接修改，可先复制后再重命名。';
+}
+
+function readActivePresetName(editor) {
+  const nameField = editor === 'workbench' ? ui.wb?.presetName : ui.settings?.presetName;
+  return String(nameField?.value || '').trim();
+}
+
+function applyActivePresetName(editor) {
+  syncActivePresetIdFromUI();
+  const preset = getActivePreset();
+  if (!isActivePresetNameEditable(preset)) return false;
+  const name = readActivePresetName(editor);
+  if (!name) return false;
+  persistActivePreset(preset.blocks, preset.id, name);
+  return true;
 }
 
 function renderPresetBlocks() {
@@ -246,6 +277,7 @@ function renderWorkbenchPresetSelector() {
   const isModifiedBuiltIn = isBuiltIn && state.customPresets.some((p) => p.id === active.id);
   if (ui.wb.deleteBtn) ui.wb.deleteBtn.classList.toggle('nai-hidden', isBuiltIn);
   if (ui.wb.resetBtn) ui.wb.resetBtn.classList.toggle('nai-hidden', !isModifiedBuiltIn);
+  syncPresetNameField('workbench');
 }
 
 function renderWorkbenchPresetBlocks() {
@@ -318,6 +350,7 @@ async function saveWorkbenchPresets() {
 
   syncActivePresetIdFromUI();
   syncWorkbenchBlocksToPreset();
+  applyActivePresetName('workbench');
   if (ui.wb?.rolePrompt) state.settings.rolePrompt = ui.wb.rolePrompt.value.trim();
 
   const settingsSaved = await storageSet({ [SETTINGS_KEY]: state.settings });
