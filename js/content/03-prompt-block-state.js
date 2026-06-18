@@ -1,6 +1,6 @@
 function getEditorStorageKey(editor) {
   if (!editor) return null;
-  const editors = Array.from(document.querySelectorAll('.ProseMirror'));
+  const editors = listPromptEditors();
   const index = editors.indexOf(editor);
   if (index === -1) return null;
   return `${PROMPT_BLOCK_STORAGE_PREFIX}:${location.origin}${location.pathname}:${index}`;
@@ -200,6 +200,14 @@ function getTextOffsetForTokenIndex(tokens, tokenIndex) {
 
 function replaceEditorText(editor, text) {
   if (!editor) return;
+  if (isPlainTextPromptEditor(editor)) {
+    editor.value = text;
+    editor.selectionStart = text.length;
+    editor.selectionEnd = text.length;
+    editor.dispatchEvent(new Event('input', { bubbles: true }));
+    activeEditor = editor;
+    return;
+  }
   const range = document.createRange();
   range.selectNodeContents(editor);
   const sel = window.getSelection();

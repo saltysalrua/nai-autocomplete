@@ -36,15 +36,125 @@ function parseCSVLine(line) {
   return result;
 }
 
+const TAG_CACHE_KEY = 'nai-ac-tags';
+const TAG_CACHE_TIME_KEY = 'nai-ac-tags-time';
+const TAG_CACHE_MAX_AGE_MS = 86400000;
+const TAG_CACHE_LIMIT = 30000;
+const TAG_CACHE_LOCAL_LIMIT = 6000;
+
+function slimTagForCache(tag) {
+  return {
+    tag: tag.tag,
+    category: tag.category,
+    postCount: tag.postCount,
+    translation: tag.translation || '',
+    aliases: Array.isArray(tag.aliases) ? tag.aliases.slice(0, 4) : [],
+  };
+}
+
+function parseStoredTagCache(raw) {
+  if (!raw) return null;
+  const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  return Array.isArray(parsed) && parsed.length ? parsed : null;
+}
+
+function storageGetLocalValues(keys) {
+  return new Promise(resolve => {
+    try {
+      if (!chrome?.storage?.local) {
+        resolve({});
+        return;
+      }
+      chrome.storage.local.get(keys, result => resolve(result || {}));
+    } catch (error) {
+      resolve({});
+    }
+  });
+}
+
+function storageSetLocalValues(data) {
+  return new Promise((resolve, reject) => {
+    try {
+      if (!chrome?.storage?.local) {
+        reject(new Error('chrome.storage.local unavailable'));
+        return;
+      }
+      chrome.storage.local.set(data, () => {
+        const message = chrome?.runtime?.lastError?.message;
+        if (message) reject(new Error(message));
+        else resolve();
+      });
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+async function readTagCache() {
+  try {
+    const stored = await storageGetLocalValues([TAG_CACHE_KEY, TAG_CACHE_TIME_KEY]);
+    const cacheTime = parseInt(stored[TAG_CACHE_TIME_KEY], 10);
+    if (cacheTime && Date.now() - cacheTime < TAG_CACHE_MAX_AGE_MS) {
+      const parsed = parseStoredTagCache(stored[TAG_CACHE_KEY]);
+      if (parsed) return parsed;
+    }
+  } catch (error) {}
+
+  try {
+    const cached = localStorage.getItem(TAG_CACHE_KEY);
+    const cacheTime = localStorage.getItem(TAG_CACHE_TIME_KEY);
+    if (cached && cacheTime && Date.now() - parseInt(cacheTime, 10) < TAG_CACHE_MAX_AGE_MS) {
+      const parsed = parseStoredTagCache(cached);
+      if (parsed) {
+        storageSetLocalValues({
+          [TAG_CACHE_KEY]: parsed.map(slimTagForCache),
+          [TAG_CACHE_TIME_KEY]: parseInt(cacheTime, 10),
+        }).catch(() => {});
+        return parsed;
+      }
+    }
+  } catch (error) {}
+
+  return null;
+}
+
+async function writeTagCache(tags) {
+  const slimmed = tags.slice(0, TAG_CACHE_LIMIT).map(slimTagForCache);
+  const cacheTime = Date.now();
+
+  try {
+    await storageSetLocalValues({
+      [TAG_CACHE_KEY]: slimmed,
+      [TAG_CACHE_TIME_KEY]: cacheTime,
+    });
+    return 'chrome.storage';
+  } catch (error) {}
+
+  try {
+    localStorage.setItem(TAG_CACHE_KEY, JSON.stringify(slimmed.slice(0, TAG_CACHE_LOCAL_LIMIT)));
+    localStorage.setItem(TAG_CACHE_TIME_KEY, String(cacheTime));
+    return 'localStorage';
+  } catch (error) {
+    console.warn('[NAI-AC] 标签缓存写入失败，将仅使用内存数据:', error);
+    return null;
+  }
+}
+
+function notifyTagsReady() {
+  if (activeEditor?.isConnected) {
+    refreshAutocomplete(activeEditor);
+  }
+}
+
 // 加载标签
 async function loadTags() {
   try {
-    const cached = localStorage.getItem('nai-ac-tags');
-    const cacheTime = localStorage.getItem('nai-ac-tags-time');
-    if (cached && cacheTime && Date.now() - parseInt(cacheTime) < 86400000) {
-      allTags = JSON.parse(cached);
+    const cached = await readTagCache();
+    if (cached) {
+      allTags = cached;
       isLoading = false;
       console.log(`[NAI-AC] 已从缓存加载 ${allTags.length} 个标签`);
+      notifyTagsReady();
       return;
     }
 
@@ -68,13 +178,17 @@ async function loadTags() {
     }
 
     allTags.sort((a, b) => b.postCount - a.postCount);
-    localStorage.setItem('nai-ac-tags', JSON.stringify(allTags.slice(0, 50000)));
-    localStorage.setItem('nai-ac-tags-time', Date.now().toString());
     isLoading = false;
-    console.log(`[NAI-AC] 已加载 ${allTags.length} 个标签`);
+
+    const cacheTarget = await writeTagCache(allTags);
+    console.log(
+      `[NAI-AC] 已加载 ${allTags.length} 个标签${cacheTarget ? `，缓存至 ${cacheTarget}` : '（未缓存）'}`,
+    );
+    notifyTagsReady();
   } catch (e) {
     console.error('[NAI-AC] 标签加载失败:', e);
     isLoading = false;
+    notifyTagsReady();
   }
 }
 

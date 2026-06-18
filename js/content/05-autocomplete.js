@@ -109,9 +109,8 @@ function replacePromptBlocksByTokenRange(startTokenIndex, endTokenIndex, inserte
 
 function getEditorFromRange(range) {
   const node = range.startContainer;
-  return node.nodeType === Node.TEXT_NODE
-    ? node.parentElement?.closest('.ProseMirror')
-    : node.closest?.('.ProseMirror');
+  const element = node.nodeType === Node.TEXT_NODE ? node.parentElement : node;
+  return findPromptEditor(element);
 }
 
 function getPromptSegmentScope(editor, node) {
@@ -126,6 +125,10 @@ function getPromptSegmentScope(editor, node) {
 }
 
 function createRangeFromTextOffsets(root, startOffset, endOffset) {
+  if (isPlainTextPromptEditor(root)) {
+    return createTextareaPseudoRange(root, startOffset, endOffset);
+  }
+
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
   const range = document.createRange();
   let node = null;
@@ -175,6 +178,10 @@ function createRangeFromTextOffsets(root, startOffset, endOffset) {
 }
 
 function getSegmentContext() {
+  if (activeEditor && isPlainTextPromptEditor(activeEditor)) {
+    return buildTextareaSegmentContext(activeEditor);
+  }
+
   const sel = window.getSelection();
   if (!sel.rangeCount) return null;
 
@@ -405,6 +412,7 @@ function showAutocomplete(editor, results, query) {
 function hideAutocomplete() {
   autocompleteContainer?.classList.remove('visible');
   autocompleteContainer?.querySelector('.nai-autocomplete-list')?.replaceChildren();
+  clearOverlayUiScale(autocompleteContainer);
   currentResults = [];
   selectedIndex = 0;
   lastRenderedQuery = '';
@@ -412,44 +420,24 @@ function hideAutocomplete() {
 }
 
 function getCaretRect(editor) {
-  const sel = window.getSelection();
-  if (!sel?.rangeCount) return editor.getBoundingClientRect();
-
-  const range = sel.getRangeAt(0).cloneRange();
-  range.collapse(true);
-
-  let rect = range.getBoundingClientRect();
-  if (rect && (rect.width || rect.height)) return rect;
-
-  const marker = document.createElement('span');
-  marker.textContent = '\u200b';
-  marker.setAttribute('data-nai-caret-marker', 'true');
-
-  try {
-    range.insertNode(marker);
-    rect = marker.getBoundingClientRect();
-  } finally {
-    marker.remove();
-    sel.removeAllRanges();
-    sel.addRange(range);
-  }
-
-  return rect && (rect.width || rect.height) ? rect : editor.getBoundingClientRect();
+  return getPromptEditorCaretRect(editor) || editor.getBoundingClientRect();
 }
 
 function positionAutocomplete(editor) {
   if (!autocompleteContainer || !editor) return;
+
+  const uiScale = applyOverlayUiScale(autocompleteContainer, getPromptEditorUiScale(editor));
   const editorRect = editor.getBoundingClientRect();
   const caretRect = getCaretRect(editor);
   const viewportPadding = 8;
-  const gap = 10;
+  const gap = Math.max(4, 10 * uiScale);
   const panelWidth = Math.min(
     Math.max(autocompleteContainer.offsetWidth || 360, 280),
-    400
+    400,
   );
   const panelHeight = Math.min(
     Math.max(autocompleteContainer.offsetHeight || 320, 180),
-    320
+    320,
   );
 
   const spaceBelow = window.innerHeight - caretRect.bottom - viewportPadding;
@@ -599,34 +587,26 @@ function selectPromptLibrary(entry) {
   const replaceStart = chunkQueryMatch
     ? chunkQueryMatch.index + chunkQueryMatch[1].length
     : Math.max(0, context.segmentText.lastIndexOf('@'));
-  const replacementRange = createRangeForCurrentTextSegment(context, replaceStart, false);
-  if (!replacementRange) return;
 
   hideAutocomplete();
-  const sel = window.getSelection();
-  sel.removeAllRanges();
-  sel.addRange(replacementRange);
-  document.execCommand('insertText', false, entry.promptText || entry.tags.join(', '));
+  replacePromptEditorSegment(
+    context,
+    replaceStart,
+    false,
+    entry.promptText || entry.tags.join(', '),
+  );
   ensurePromptBlockModel(activeEditor);
 }
 
 function selectTag(tag) {
   if (!activeEditor || !tag) return;
-  const sel = window.getSelection();
-  if (!sel?.rangeCount) return;
 
   const context = lastAutocompleteContext || getSegmentContext();
   if (!context) return;
 
   const {
-    editor,
-    caretNode,
-    caretNodeOffset,
-    nodeSegmentStartOffset,
     segmentText: currentSegment,
     segmentTailText,
-    segmentStartOffset,
-    caretOffset,
     nextMeaningfulChar,
   } = context;
 
@@ -674,23 +654,17 @@ function selectTag(tag) {
     !isAfterComplete &&
     !isMultiTagFormat;
   if (shouldRewriteWeightedSegment) {
-    const replacementRange = createWeightPrefixRange(context, currentWeightMatch[1].length);
-    if (!replacementRange) return;
-
-    sel.removeAllRanges();
-    sel.addRange(replacementRange);
-    document.execCommand('insertText', false, weight.toFixed(1));
+    const replaced = replacePromptEditorSegment(
+      context,
+      0,
+      false,
+      weight.toFixed(1),
+      { end: currentWeightMatch[1].length },
+    );
+    if (!replaced) return;
     hideAutocomplete();
     return;
   }
-
-  const replacementRange = createRangeForCurrentTextSegment(context, start, replaceTail, {
-    preferScope: false,
-  });
-  if (!replacementRange) return;
-
-  sel.removeAllRanges();
-  sel.addRange(replacementRange);
 
   let tagName = tag.tag;
   if (settings.convertSlashToSpace) {
@@ -723,7 +697,10 @@ function selectTag(tag) {
       : `${tagName}${preservedSuffix}${commaSuffix}`;
   }
 
-  document.execCommand('insertText', false, output);
+  const replaced = replacePromptEditorSegment(context, start, replaceTail, output, {
+    preferScope: false,
+  });
+  if (!replaced) return;
   hideAutocomplete();
 }
 

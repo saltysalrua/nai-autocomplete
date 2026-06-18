@@ -572,6 +572,8 @@ function renderPromptBlockPanel(editor) {
     return;
   }
 
+  const uiScale = getPromptEditorUiScale(editor);
+
   panel.innerHTML = visuals.map(block => `
     ${block.rects.map(rect => `
       <div
@@ -589,7 +591,7 @@ function renderPromptBlockPanel(editor) {
     <div
       class="nai-prompt-block-anchor"
       data-block-id="${block.id}"
-      style="--nai-block-accent: ${block.accent}; left: ${block.anchorLeft}px; top: ${block.anchorTop}px;"
+      style="--nai-block-accent: ${block.accent}; left: ${block.anchorLeft}px; top: ${block.anchorTop}px; zoom: ${uiScale};"
     >
       <button
         type="button"
@@ -649,10 +651,15 @@ function commitPromptBlocks(editor) {
 
 function hidePromptBlockToolbar() {
   if (!promptBlockToolbar) return;
+  clearOverlayUiScale(promptBlockToolbar);
   promptBlockToolbar.classList.add('nai-hidden');
 }
 
 function getPromptSelectionContext(editor) {
+  if (isPlainTextPromptEditor(editor)) {
+    return getTextareaSelectionContext(editor);
+  }
+
   const sel = window.getSelection();
   if (!editor || !sel?.rangeCount || sel.isCollapsed) return null;
   const range = sel.getRangeAt(0);
@@ -693,11 +700,15 @@ function updatePromptBlockToolbar(editor) {
     return;
   }
 
-  const width = toolbar.offsetWidth || 120;
-  const top = context.rect.top - 44 >= 8 ? context.rect.top - 44 : context.rect.bottom + 8;
+  const uiScale = getPromptEditorUiScale(editor);
+  const width = (toolbar.offsetWidth || 120) * uiScale;
+  const top = context.rect.top - 44 * uiScale >= 8
+    ? context.rect.top - 44 * uiScale
+    : context.rect.bottom + 8;
   const left = Math.min(Math.max(8, context.rect.left), window.innerWidth - width - 8);
   toolbar.style.top = `${Math.max(8, top)}px`;
   toolbar.style.left = `${left}px`;
+  applyOverlayUiScale(toolbar, uiScale);
   toolbar.classList.remove('nai-hidden');
 }
 
@@ -764,8 +775,14 @@ function groupPromptSelection() {
 function getTokenIndexFromPoint(editor, clientX, clientY) {
   if (!editor) return 0;
 
+  if (isPlainTextPromptEditor(editor)) {
+    const offset = getTextOffsetBeforeTextareaPoint(editor, clientX, clientY);
+    const beforeText = (editor.value || '').slice(0, offset);
+    return splitPromptTags(beforeText).length;
+  }
+
   const pointTarget = document.elementFromPoint(clientX, clientY);
-  if (!pointTarget?.closest('.ProseMirror')) {
+  if (!findPromptEditor(pointTarget)) {
     return splitPromptTags(getEditorText(editor)).length;
   }
 
@@ -805,6 +822,7 @@ function showPromptBlockDropIndicator(editor, tokenIndex) {
   indicator.style.left = `${left}px`;
   indicator.style.top = `${top}px`;
   indicator.style.height = `${height}px`;
+  applyOverlayUiScale(indicator, getPromptEditorUiScale(editor));
   indicator.classList.remove('nai-hidden');
 }
 

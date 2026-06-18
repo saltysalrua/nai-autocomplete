@@ -16,7 +16,7 @@ const CONFIG = {
   MIN_QUERY_LENGTH: 1,
   DEBOUNCE_DELAY: 150,
 };
-const CONTENT_SCRIPT_VERSION = '1.5.1-official-chunk-bridge.1';
+const CONTENT_SCRIPT_VERSION = '1.5.6-comfyui-scale.1';
 
 // 全局设置
 let settings = {
@@ -110,6 +110,9 @@ function getEditorNodeText(node) {
 }
 
 function getEditorText(editor) {
+  if (isPlainTextPromptEditor(editor)) {
+    return String(editor.value || '').replace(/\u200b/g, '').trim();
+  }
   return getEditorNodeText(editor).replace(/\u200b/g, '').trim();
 }
 

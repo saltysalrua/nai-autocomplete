@@ -8,7 +8,9 @@ async function init() {
   } catch (e) {}
 
   syncThemeFromStorage();
-  ensureOfficialChunkBridgeScript();
+  if (location.hostname === 'novelai.net') {
+    ensureOfficialChunkBridgeScript();
+  }
   await loadPromptLibrary();
   loadTags();
 
@@ -21,18 +23,42 @@ async function init() {
     });
   } catch (error) {}
 
-  document.addEventListener('input', e => {
-    const editor = e.target.closest('.ProseMirror');
+  const handlePromptEditorActivity = (editor) => {
     if (!editor) return;
     activeEditor = editor;
     ensurePromptBlockModel(editor, { render: false });
     renderPromptBlockPanelSoon(editor);
     updatePromptBlockToolbar(editor);
     refreshAutocomplete(editor);
+  };
+
+  document.addEventListener('input', e => {
+    handlePromptEditorActivity(findPromptEditor(e.target));
+  }, true);
+
+  document.addEventListener('click', e => {
+    const editor = findPromptEditor(e.target);
+    if (!editor) return;
+    setTimeout(() => handlePromptEditorActivity(editor), 0);
+  }, true);
+
+  document.addEventListener('keyup', e => {
+    const editor = findPromptEditor(e.target);
+    if (!editor) return;
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Home' || e.key === 'End') {
+      handlePromptEditorActivity(editor);
+    }
   }, true);
 
   document.addEventListener('selectionchange', () => {
     const sel = window.getSelection();
+    const focusedEditor = findPromptEditor(document.activeElement);
+    if (focusedEditor) {
+      handlePromptEditorActivity(focusedEditor);
+      scheduleAutocompleteReposition();
+      return;
+    }
+
     if (!sel?.rangeCount) {
       hidePromptBlockToolbar();
       if (activeEditor?.isConnected) {
@@ -42,9 +68,7 @@ async function init() {
     }
 
     const node = sel.getRangeAt(0).startContainer;
-    const editor = node.nodeType === Node.TEXT_NODE
-      ? node.parentElement?.closest('.ProseMirror')
-      : node.closest?.('.ProseMirror');
+    const editor = findPromptEditor(node.nodeType === Node.TEXT_NODE ? node.parentElement : node);
 
     if (!editor) {
       hidePromptBlockToolbar();
@@ -68,6 +92,11 @@ async function init() {
   document.addEventListener('scroll', scheduleAutocompleteReposition, true);
   window.addEventListener('scroll', scheduleAutocompleteReposition, true);
   window.addEventListener('resize', scheduleAutocompleteReposition);
+  document.addEventListener('wheel', () => {
+    if (!activeEditor) return;
+    scheduleAutocompleteReposition();
+    renderPromptBlockPanelSoon(activeEditor, true);
+  }, { capture: true, passive: true });
 
   document.addEventListener('keydown', handleKeyDown, true);
   document.addEventListener('keydown', event => {
@@ -76,7 +105,9 @@ async function init() {
     if (event.key.toLowerCase() !== 'z') return;
 
     const selection = window.getSelection();
-    const editor = activeEditor || (selection?.rangeCount ? getEditorFromRange(selection.getRangeAt(0)) : null);
+    const editor = activeEditor
+      || findPromptEditor(document.activeElement)
+      || (selection?.rangeCount ? getEditorFromRange(selection.getRangeAt(0)) : null);
     if (!editor) return;
 
     schedulePromptBlockUndoSync(editor);
@@ -100,7 +131,7 @@ async function init() {
 
   document.addEventListener('dragover', event => {
     if (!promptBlockDragId || !activeEditor) return;
-    const editor = document.elementFromPoint(event.clientX, event.clientY)?.closest('.ProseMirror');
+    const editor = findPromptEditor(document.elementFromPoint(event.clientX, event.clientY));
     if (editor !== activeEditor) return;
     event.preventDefault();
     showPromptBlockDropIndicator(activeEditor, getTokenIndexFromPoint(activeEditor, event.clientX, event.clientY));
@@ -108,7 +139,7 @@ async function init() {
 
   document.addEventListener('drop', event => {
     if (!promptBlockDragId || !activeEditor) return;
-    const editor = document.elementFromPoint(event.clientX, event.clientY)?.closest('.ProseMirror');
+    const editor = findPromptEditor(document.elementFromPoint(event.clientX, event.clientY));
     if (editor !== activeEditor) return;
     event.preventDefault();
     const tokenIndex = getTokenIndexFromPoint(activeEditor, event.clientX, event.clientY);
